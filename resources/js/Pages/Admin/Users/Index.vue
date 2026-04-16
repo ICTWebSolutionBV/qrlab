@@ -61,40 +61,40 @@ const revokeInvite = (id) => {
         <div v-if="showInviteForm" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Send Invite</h2>
             <form @submit.prevent="createInvite" class="flex flex-wrap gap-3 items-end">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                    <input v-model="inviteForm.email" type="email" required
-                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                </div>
                 <div class="w-36">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input v-model="inviteForm.first_name" type="text"
+                    <input v-model="inviteForm.first_name" type="text" placeholder="Jane"
                         class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                 </div>
                 <div class="w-36">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input v-model="inviteForm.last_name" type="text"
+                    <input v-model="inviteForm.last_name" type="text" placeholder="Doe"
                         class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                 </div>
-                <div>
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                    <input v-model="inviteForm.email" type="email" required placeholder="jane@example.com"
+                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                    <p v-if="inviteForm.errors.email" class="text-red-500 text-xs mt-1">{{ inviteForm.errors.email }}</p>
+                </div>
+                <div class="w-28">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                     <select v-model="inviteForm.role"
-                        class="px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none">
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div>
+                <div class="w-28">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expires (hours)</label>
                     <input v-model.number="inviteForm.expires_hours" type="number" min="1" max="720"
-                        class="w-24 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
                 </div>
                 <button type="submit" :disabled="inviteForm.processing"
-                    class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm disabled:opacity-50">
-                    Send Invite
+                    class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm disabled:opacity-50 self-end">
+                    {{ inviteForm.processing ? 'Sending…' : 'Send Invite' }}
                 </button>
             </form>
-            <p v-if="inviteForm.errors.email" class="text-red-500 text-xs mt-2">{{ inviteForm.errors.email }}</p>
         </div>
 
         <!-- Users table -->

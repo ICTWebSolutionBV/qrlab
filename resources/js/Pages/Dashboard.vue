@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
@@ -6,10 +7,20 @@ defineProps({
     qrCodes: Object,
 })
 
+const deleteTarget = ref(null)
+
 const confirmDelete = (qr) => {
-    if (confirm(`Delete "${qr.name}"? This cannot be undone.`)) {
-        router.delete(route('qr.destroy', qr.id))
-    }
+    deleteTarget.value = qr
+}
+
+const cancelDelete = () => {
+    deleteTarget.value = null
+}
+
+const doDelete = () => {
+    if (!deleteTarget.value) return
+    router.delete(route('qr.destroy', deleteTarget.value.id))
+    deleteTarget.value = null
 }
 </script>
 
@@ -69,5 +80,54 @@ const confirmDelete = (qr) => {
                 </div>
             </div>
         </div>
+
+        <!-- Delete confirmation modal -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="cancelDelete">
+                    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cancelDelete" />
+                    <Transition
+                        enter-active-class="transition duration-150 ease-out"
+                        enter-from-class="opacity-0 scale-95"
+                        enter-to-class="opacity-100 scale-100"
+                        leave-active-class="transition duration-100 ease-in"
+                        leave-from-class="opacity-100 scale-100"
+                        leave-to-class="opacity-0 scale-95"
+                    >
+                        <div v-if="deleteTarget" class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-6 w-full max-w-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">Delete QR Code</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mb-5">
+                                Are you sure you want to delete <span class="font-medium text-gray-900 dark:text-white">{{ deleteTarget.name }}</span>?
+                            </p>
+                            <div class="flex gap-3">
+                                <button @click="cancelDelete"
+                                    class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                    Cancel
+                                </button>
+                                <button @click="doDelete"
+                                    class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </Transition>
+                </div>
+            </Transition>
+        </Teleport>
     </AppLayout>
 </template>
