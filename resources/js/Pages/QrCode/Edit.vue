@@ -36,6 +36,11 @@ const form = useForm({
     header_bold: props.qrCode.header_bold ?? false,
     header_italic: props.qrCode.header_italic ?? false,
     header_underline: props.qrCode.header_underline ?? false,
+    header_margin_custom: props.qrCode.header_margin_custom ?? false,
+    header_margin_top: props.qrCode.header_margin_top ?? 8,
+    header_margin_right: props.qrCode.header_margin_right ?? 0,
+    header_margin_bottom: props.qrCode.header_margin_bottom ?? 8,
+    header_margin_left: props.qrCode.header_margin_left ?? 0,
     footer_text: props.qrCode.footer_text || '',
     footer_font_size: props.qrCode.footer_font_size || '14',
     footer_color: props.qrCode.footer_color || '#000000',
@@ -45,6 +50,11 @@ const form = useForm({
     footer_bold: props.qrCode.footer_bold ?? false,
     footer_italic: props.qrCode.footer_italic ?? false,
     footer_underline: props.qrCode.footer_underline ?? false,
+    footer_margin_custom: props.qrCode.footer_margin_custom ?? false,
+    footer_margin_top: props.qrCode.footer_margin_top ?? 8,
+    footer_margin_right: props.qrCode.footer_margin_right ?? 0,
+    footer_margin_bottom: props.qrCode.footer_margin_bottom ?? 8,
+    footer_margin_left: props.qrCode.footer_margin_left ?? 0,
     show_wifi_details: props.qrCode.show_wifi_details ?? false,
     wifi_details_font_size: props.qrCode.wifi_details_font_size || '14',
     wifi_details_color: props.qrCode.wifi_details_color || '#000000',
@@ -77,6 +87,11 @@ const headerLabel = computed(() => ({
     underline: form.header_underline,
     alignment: form.header_alignment,
     margin: form.header_margin,
+    marginCustom: form.header_margin_custom,
+    marginTop: form.header_margin_top,
+    marginRight: form.header_margin_right,
+    marginBottom: form.header_margin_bottom,
+    marginLeft: form.header_margin_left,
 }))
 
 function updateHeader(val) {
@@ -89,6 +104,11 @@ function updateHeader(val) {
     form.header_underline = val.underline
     form.header_alignment = val.alignment
     form.header_margin = val.margin
+    form.header_margin_custom = val.marginCustom
+    form.header_margin_top = val.marginTop
+    form.header_margin_right = val.marginRight
+    form.header_margin_bottom = val.marginBottom
+    form.header_margin_left = val.marginLeft
 }
 
 const footerLabel = computed(() => ({
@@ -101,6 +121,11 @@ const footerLabel = computed(() => ({
     underline: form.footer_underline,
     alignment: form.footer_alignment,
     margin: form.footer_margin,
+    marginCustom: form.footer_margin_custom,
+    marginTop: form.footer_margin_top,
+    marginRight: form.footer_margin_right,
+    marginBottom: form.footer_margin_bottom,
+    marginLeft: form.footer_margin_left,
 }))
 
 function updateFooter(val) {
@@ -113,6 +138,11 @@ function updateFooter(val) {
     form.footer_underline = val.underline
     form.footer_alignment = val.alignment
     form.footer_margin = val.margin
+    form.footer_margin_custom = val.marginCustom
+    form.footer_margin_top = val.marginTop
+    form.footer_margin_right = val.marginRight
+    form.footer_margin_bottom = val.marginBottom
+    form.footer_margin_left = val.marginLeft
 }
 
 // Preview style helpers
@@ -124,7 +154,10 @@ const headerStyle = computed(() => ({
     fontStyle: form.header_italic ? 'italic' : 'normal',
     textDecoration: form.header_underline ? 'underline' : 'none',
     textAlign: form.header_alignment,
-    marginBottom: form.header_margin + 'px',
+    ...(form.header_margin_custom
+        ? { margin: `${form.header_margin_top}px ${form.header_margin_right}px ${form.header_margin_bottom}px ${form.header_margin_left}px` }
+        : { marginBottom: form.header_margin + 'px' }
+    ),
 }))
 
 const footerStyle = computed(() => ({
@@ -135,7 +168,10 @@ const footerStyle = computed(() => ({
     fontStyle: form.footer_italic ? 'italic' : 'normal',
     textDecoration: form.footer_underline ? 'underline' : 'none',
     textAlign: form.footer_alignment,
-    marginTop: form.footer_margin + 'px',
+    ...(form.footer_margin_custom
+        ? { margin: `${form.footer_margin_top}px ${form.footer_margin_right}px ${form.footer_margin_bottom}px ${form.footer_margin_left}px` }
+        : { marginTop: form.footer_margin + 'px' }
+    ),
 }))
 
 const wifiDetailsBaseStyle = computed(() => ({

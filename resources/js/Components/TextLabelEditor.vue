@@ -15,6 +15,11 @@ const props = defineProps({
             underline: false,
             alignment: 'center',
             margin: 8,
+            marginCustom: false,
+            marginTop: 8,
+            marginRight: 0,
+            marginBottom: 8,
+            marginLeft: 0,
         }),
     },
     label: { type: String, default: 'Text' },
@@ -27,17 +32,40 @@ function update(key, value) {
     emit('update:modelValue', { ...props.modelValue, [key]: value })
 }
 
+function toggleCustomMargin() {
+    const next = !props.modelValue.marginCustom
+    // When switching to custom, seed the 4 fields from the current uniform value
+    const m = props.modelValue.margin ?? 8
+    emit('update:modelValue', {
+        ...props.modelValue,
+        marginCustom: next,
+        ...(next ? {
+            marginTop: m,
+            marginRight: 0,
+            marginBottom: m,
+            marginLeft: 0,
+        } : {}),
+    })
+}
+
 const hasText = computed(() => !!props.modelValue.text?.trim())
 
-const previewStyle = computed(() => ({
-    fontFamily: getFontStack(props.modelValue.fontFamily),
-    fontSize: props.modelValue.fontSize + 'px',
-    color: props.modelValue.color,
-    fontWeight: props.modelValue.bold ? '700' : '400',
-    fontStyle: props.modelValue.italic ? 'italic' : 'normal',
-    textDecoration: props.modelValue.underline ? 'underline' : 'none',
-    textAlign: props.modelValue.alignment,
-}))
+const previewStyle = computed(() => {
+    const mv = props.modelValue
+    const marginStyle = mv.marginCustom
+        ? { margin: `${mv.marginTop ?? 0}px ${mv.marginRight ?? 0}px ${mv.marginBottom ?? 0}px ${mv.marginLeft ?? 0}px` }
+        : { margin: `${mv.margin ?? 8}px 0` }
+    return {
+        fontFamily: getFontStack(mv.fontFamily),
+        fontSize: mv.fontSize + 'px',
+        color: mv.color,
+        fontWeight: mv.bold ? '700' : '400',
+        fontStyle: mv.italic ? 'italic' : 'normal',
+        textDecoration: mv.underline ? 'underline' : 'none',
+        textAlign: mv.alignment,
+        ...marginStyle,
+    }
+})
 </script>
 
 <template>
@@ -148,44 +176,80 @@ const previewStyle = computed(() => ({
                 </div>
             </div>
 
-            <!-- Alignment + Margin -->
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Alignment</label>
-                    <div class="flex gap-1">
-                        <button
-                            v-for="align in ['left', 'center', 'right']"
-                            :key="align"
-                            type="button"
-                            @click="update('alignment', align)"
-                            :class="[
-                                'flex-1 py-1.5 rounded text-xs border capitalize transition-colors',
-                                modelValue.alignment === align
-                                    ? 'bg-emerald-600 border-emerald-600 text-white'
-                                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400'
-                            ]"
-                        >
-                            <span v-if="align === 'left'">&#9664;</span>
-                            <span v-else-if="align === 'center'">&#9644;</span>
-                            <span v-else>&#9654;</span>
-                        </button>
-                    </div>
+            <!-- Alignment -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Alignment</label>
+                <div class="flex gap-1">
+                    <button
+                        v-for="align in ['left', 'center', 'right']"
+                        :key="align"
+                        type="button"
+                        @click="update('alignment', align)"
+                        :class="[
+                            'flex-1 py-1.5 rounded text-xs border capitalize transition-colors',
+                            modelValue.alignment === align
+                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400'
+                        ]"
+                    >
+                        <span v-if="align === 'left'">&#9664;</span>
+                        <span v-else-if="align === 'center'">&#9644;</span>
+                        <span v-else>&#9654;</span>
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Margin <span class="text-gray-400">{{ modelValue.margin }}px</span></label>
+            </div>
+
+            <!-- Margin: slider + custom toggle -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Margin</label>
+                    <button
+                        type="button"
+                        @click="toggleCustomMargin"
+                        :class="[
+                            'text-xs px-2 py-0.5 rounded border transition-colors',
+                            modelValue.marginCustom
+                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-emerald-400'
+                        ]"
+                    >Custom</button>
+                </div>
+
+                <!-- Uniform slider -->
+                <div v-if="!modelValue.marginCustom" class="flex items-center gap-2">
                     <input
                         type="range"
                         :value="modelValue.margin"
                         @input="update('margin', Number($event.target.value))"
                         min="0" max="40" step="1"
-                        class="w-full accent-emerald-600"
+                        class="flex-1 h-1 accent-emerald-600"
                     />
+                    <span class="text-xs text-gray-400 w-8 text-right tabular-nums">{{ modelValue.margin }}px</span>
+                </div>
+
+                <!-- Custom 4-box -->
+                <div v-else class="grid grid-cols-4 gap-1.5">
+                    <div v-for="side in [
+                        { key: 'marginTop', label: 'T' },
+                        { key: 'marginRight', label: 'R' },
+                        { key: 'marginBottom', label: 'B' },
+                        { key: 'marginLeft', label: 'L' },
+                    ]" :key="side.key" class="flex flex-col items-center gap-0.5">
+                        <span class="text-xs text-gray-400">{{ side.label }}</span>
+                        <input
+                            type="number"
+                            :value="modelValue[side.key] ?? 0"
+                            @input="update(side.key, Number($event.target.value))"
+                            min="0" max="80" step="1"
+                            class="w-full px-1 py-1 text-xs text-center border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                    </div>
                 </div>
             </div>
 
             <!-- Live mini preview -->
-            <div class="rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 px-3 py-2 text-center overflow-hidden">
-                <span :style="previewStyle">{{ modelValue.text }}</span>
+            <div class="rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 px-3 overflow-hidden">
+                <p :style="previewStyle">{{ modelValue.text }}</p>
             </div>
         </template>
     </div>
