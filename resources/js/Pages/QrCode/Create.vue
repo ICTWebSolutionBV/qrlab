@@ -17,6 +17,12 @@ const qrPreviewRef = ref(null)
 const logoPreview = ref(null)
 const showTextLabels = ref(false)
 const showDesign = ref(false)
+const showLogo = ref(false)
+
+function toggleLogo() {
+    showLogo.value = !showLogo.value
+    if (!showLogo.value) removeLogo()
+}
 const wifiCustomSize = ref(false)
 const wifiIsCustomSize = computed(() => wifiCustomSize.value || !['12','14','16','18','20','24'].includes(String(form.wifi_details_font_size)))
 
@@ -897,23 +903,34 @@ const downloadQr = async (ext) => {
 
                 <!-- Logo -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Logo (Optional)</h2>
-                    <div v-if="logoPreview" class="flex items-center gap-4 mb-4">
-                        <img :src="logoPreview" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-800 p-1" />
-                        <div class="flex-1">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Logo uploaded</p>
-                            <button @click="removeLogo" class="text-red-500 text-xs font-medium hover:text-red-700">Remove</button>
+                    <div class="flex items-center justify-between" :class="showLogo ? 'mb-4' : ''">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Logo</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Add a logo or image in the centre of the QR code</p>
                         </div>
+                        <button type="button" @click="toggleLogo"
+                            :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2', showLogo ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                            <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', showLogo ? 'translate-x-5' : 'translate-x-0']" />
+                        </button>
                     </div>
-                    <label v-else class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
-                        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                        <span class="text-sm text-gray-500">Upload logo (PNG, JPG, SVG, max 2MB)</span>
-                        <input type="file" class="hidden" accept=".png,.jpg,.jpeg,.gif,.svg" @change="onLogoChange" />
-                    </label>
-                    <div v-if="logoPreview" class="mt-3">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo Size ({{ form.logo_size }}%)</label>
-                        <input v-model.number="form.logo_size" type="range" min="10" max="40" class="w-full" />
-                    </div>
+                    <template v-if="showLogo">
+                        <div v-if="logoPreview" class="flex items-center gap-4 mb-4">
+                            <img :src="logoPreview" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-800 p-1" />
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Logo uploaded</p>
+                                <button @click="removeLogo" class="text-red-500 text-xs font-medium hover:text-red-700">Remove</button>
+                            </div>
+                        </div>
+                        <label v-else class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            <span class="text-sm text-gray-500">Upload logo (PNG, JPG, SVG, max 2MB)</span>
+                            <input type="file" class="hidden" accept=".png,.jpg,.jpeg,.gif,.svg" @change="onLogoChange" />
+                        </label>
+                        <div v-if="logoPreview" class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo Size ({{ form.logo_size }}%)</label>
+                            <input v-model.number="form.logo_size" type="range" min="10" max="40" class="w-full" />
+                        </div>
+                    </template>
                 </div>
             </div>
 
