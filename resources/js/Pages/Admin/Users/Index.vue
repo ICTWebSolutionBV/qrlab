@@ -36,6 +36,26 @@ const deleteUser = (id) => {
 const revokeInvite = (id) => {
     router.delete(route('admin.invites.destroy', id))
 }
+
+const sendPasswordReset = (user) => {
+    if (confirm(`Send a password reset email to ${user.email}?`)) {
+        router.post(route('admin.users.password-reset', user.id), {}, { preserveScroll: true })
+    }
+}
+
+const resetTwoFactor = (user) => {
+    if (confirm(`Reset all 2FA settings for ${user.email}?\n\nThis will remove their authenticator, email verification, and passkeys. They will be required to set up 2FA again on next sign-in.`)) {
+        router.post(route('admin.users.reset-2fa', user.id), {}, { preserveScroll: true })
+    }
+}
+
+const twoFactorSummary = (user) => {
+    const m = []
+    if (user.two_factor?.totp_enabled) m.push('App')
+    if (user.two_factor?.email_enabled) m.push('Email')
+    if (user.two_factor?.passkeys_enabled) m.push('Passkey')
+    return m.length ? m.join(', ') : 'None'
+}
 </script>
 
 <template>
@@ -105,6 +125,7 @@ const revokeInvite = (id) => {
                         <th class="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Name</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Email</th>
                         <th class="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Role</th>
+                        <th class="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">2FA</th>
                         <th class="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Actions</th>
                     </tr>
                 </thead>
@@ -116,8 +137,11 @@ const revokeInvite = (id) => {
                             <span :class="[user.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400']"
                                 class="text-xs px-2 py-1 rounded-full font-medium capitalize">{{ user.role }}</span>
                         </td>
-                        <td class="px-4 py-3 text-right">
+                        <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{{ twoFactorSummary(user) }}</td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap">
                             <Link :href="route('admin.users.edit', user.id)" class="text-primary-600 hover:text-primary-700 text-xs font-medium mr-3">Edit</Link>
+                            <button @click="sendPasswordReset(user)" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white text-xs font-medium mr-3">Send password reset</button>
+                            <button @click="resetTwoFactor(user)" class="text-amber-600 hover:text-amber-700 text-xs font-medium mr-3">Reset 2FA</button>
                             <button @click="deleteUser(user.id)" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
                         </td>
                     </tr>

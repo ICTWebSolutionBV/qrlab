@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { Head, useForm, usePage, Link } from '@inertiajs/vue3'
 
 const page = usePage()
 
@@ -103,10 +103,15 @@ onMounted(() => {
                         <p v-if="form.errors.password" class="text-red-500 text-xs mt-1">{{ form.errors.password }}</p>
                     </div>
 
-                    <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <input v-model="form.remember" type="checkbox" class="rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500" />
-                        Remember me
-                    </label>
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <input v-model="form.remember" type="checkbox" class="rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500" />
+                            Remember me
+                        </label>
+                        <Link :href="route('password.request')" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">
+                            Forgot password?
+                        </Link>
+                    </div>
 
                     <button type="submit" :disabled="form.processing"
                         class="w-full px-4 py-2.5 bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-white text-white dark:text-gray-900 font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">

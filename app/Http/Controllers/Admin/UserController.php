@@ -9,6 +9,7 @@ use App\Models\UserInvite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -24,6 +25,11 @@ class UserController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'created_at' => $user->created_at->toISOString(),
+                'two_factor' => [
+                    'totp_enabled' => $user->hasTotpEnabled(),
+                    'email_enabled' => $user->hasEmailOtpEnabled(),
+                    'passkeys_enabled' => $user->hasPasskeysEnabled(),
+                ],
             ]),
             'invites' => UserInvite::with('inviter')->latest()->get()->map(fn ($invite) => [
                 'id' => $invite->id,
@@ -138,5 +144,36 @@ class UserController extends Controller
         $invite->delete();
 
         return back()->with('success', 'Invite revoked.');
+    }
+
+    public function sendPasswordReset(User $user)
+    {
+        $status = PasswordBroker::sendResetLink(['email' => $user->email]);
+
+        if ($status === PasswordBroker::RESET_LINK_SENT) {
+            return back()->with('success', "Password reset email sent to {$user->email}.");
+        }
+
+        return back()->with('error', 'Could not send password reset email: ' . __($status));
+    }
+
+    public function resetTwoFactor(User $user, Request $request)
+    {
+        if ($user->id === $request->user()->id) {
+            return back()->with('error', 'Use your profile to change your own 2FA settings.');
+        }
+
+        // Clear TOTP + email OTP + pending email tokens + passkeys
+        $user->forceFill([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+            'two_factor_email_enabled' => false,
+        ])->save();
+
+        $user->twoFactorTokens()->delete();
+        $user->passkeys()->delete();
+
+        return back()->with('success', "Two-factor settings reset for {$user->email}. They'll be required to enroll again on next sign in.");
     }
 }

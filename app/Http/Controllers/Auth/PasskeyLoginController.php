@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserInvite;
 use Illuminate\Http\Request;
 use Spatie\LaravelPasskeys\Actions\FindPasskeyToAuthenticateAction;
 use Spatie\LaravelPasskeys\Support\Config;
@@ -47,6 +48,9 @@ class PasskeyLoginController extends Controller
         session()->regenerate();
 
         $passkey->update(['last_used_at' => now()]);
+
+        // Clean up any lingering invites for this email — the account clearly exists.
+        UserInvite::where('email', $passkey->authenticatable->email)->delete();
 
         return redirect()->intended(route('dashboard'));
     }

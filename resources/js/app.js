@@ -4,24 +4,13 @@ import '../css/app.css';
 import { createApp, h, watch } from 'vue';
 import { createInertiaApp, usePage } from '@inertiajs/vue3';
 import { ZiggyVue } from 'ziggy-js';
-
-function applyTheme(preference) {
-    if (preference === 'dark') {
-        document.documentElement.classList.add('dark');
-    } else if (preference === 'light') {
-        document.documentElement.classList.remove('dark');
-    } else {
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }
-}
+import { applyTheme } from './composables/useTheme';
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const page = usePage();
-    const pref = page.props?.auth?.user?.theme_preference || 'auto';
+    const pref = page.props?.auth?.user?.theme_preference
+        || localStorage.getItem('theme')
+        || 'auto';
     if (pref === 'auto') {
         applyTheme('auto');
     }
@@ -42,7 +31,8 @@ createInertiaApp({
             .use(ZiggyVue)
             .mount(el);
 
-        const initialPref = props.initialPage.props?.auth?.user?.theme_preference || 'auto';
+        const userPref = props.initialPage.props?.auth?.user?.theme_preference;
+        const initialPref = userPref || localStorage.getItem('theme') || 'auto';
         applyTheme(initialPref);
 
         watch(

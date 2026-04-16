@@ -10,10 +10,10 @@
         "endroid/qr-code": "^6.0",
         "inertiajs/inertia-laravel": "^3.0",
         "intervention/image-laravel": "^1.5",
-        "laravel/fortify": "^1",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "league/csv": "^9.0",
+        "pragmarx/google2fa": "^9.0",
         "spatie/laravel-passkeys": "^1.7",
         "tightenco/ziggy": "^2.6"
     },

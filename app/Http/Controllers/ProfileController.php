@@ -12,12 +12,19 @@ class ProfileController extends Controller
 {
     public function edit(Request $request)
     {
+        $user = $request->user();
+
         return Inertia::render('Profile/Edit', [
             'user' => [
-                'id' => $request->user()->id,
-                'name' => $request->user()->name,
-                'email' => $request->user()->email,
-                'theme_preference' => $request->user()->theme_preference,
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'theme_preference' => $user->theme_preference,
+                'two_factor' => [
+                    'totp_enabled' => $user->hasTotpEnabled(),
+                    'email_enabled' => $user->hasEmailOtpEnabled(),
+                    'passkeys_enabled' => $user->hasPasskeysEnabled(),
+                ],
             ],
         ]);
     }
