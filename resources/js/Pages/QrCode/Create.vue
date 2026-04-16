@@ -127,6 +127,9 @@ const qrContent = computed(() => {
     if (form.type === 'url') {
         return form.url || 'https://example.com'
     }
+    if (form.type === 'phone') {
+        return form.url ? `tel:${form.url}` : 'tel:+31612345678'
+    }
     const enc = ['WPA', 'WPA2', 'WPA3'].includes(form.encryption) ? 'WPA' :
         form.encryption === 'WEP' ? 'WEP' : 'nopass'
     const ssid = (form.ssid || 'MyNetwork').replace(/([\\;,":])/, '\\$1')
@@ -319,6 +322,10 @@ const downloadQr = async (ext) => {
                         :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors', form.type === 'url' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']">
                         URL
                     </button>
+                    <button type="button" @click="form.type = 'phone'"
+                        :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors', form.type === 'phone' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']">
+                        Phone
+                    </button>
                 </div>
 
                 <!-- WiFi Details -->
@@ -360,12 +367,24 @@ const downloadQr = async (ext) => {
                 </div>
 
                 <!-- URL Details -->
-                <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <div v-else-if="form.type === 'url'" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">URL Details</h2>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
                         <input v-model="form.url" type="url" placeholder="https://example.com"
                             class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                        <p v-if="form.errors.url" class="text-red-500 text-xs mt-1">{{ form.errors.url }}</p>
+                    </div>
+                </div>
+
+                <!-- Phone Details -->
+                <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Phone Details</h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                        <input v-model="form.url" type="tel" placeholder="+31612345678"
+                            class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Include country code (e.g. +31). Scanning will prompt a call.</p>
                         <p v-if="form.errors.url" class="text-red-500 text-xs mt-1">{{ form.errors.url }}</p>
                     </div>
                 </div>
@@ -806,7 +825,7 @@ const downloadQr = async (ext) => {
                                 <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled ? 'translate-x-5' : 'translate-x-0']" />
                             </button>
                         </div>
-                        <button @click="submit" :disabled="form.processing || !form.name || (form.type === 'wifi' ? !form.ssid : !form.url)"
+                        <button @click="submit" :disabled="form.processing || !form.name || (form.type === 'wifi' ? !form.ssid : !form.url.trim())"
                             class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">
                             {{ form.processing ? 'Saving...' : 'Save QR Code' }}
                         </button>

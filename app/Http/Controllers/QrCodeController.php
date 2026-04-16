@@ -21,7 +21,7 @@ class QrCodeController extends Controller
         $type = $request->input('type', 'wifi');
 
         $rules = [
-            'type' => ['required', 'in:wifi,url'],
+            'type' => ['required', 'in:wifi,url,phone'],
             'name' => ['required', 'string', 'max:255'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
@@ -92,8 +92,10 @@ class QrCodeController extends Controller
                 'wifi_details_password_underline' => ['boolean'],
                 'wifi_details_password_color' => ['nullable', 'string', 'max:7'],
             ]);
-        } else {
+        } elseif ($type === 'url') {
             $rules['url'] = ['required', 'url', 'max:2048'];
+        } else {
+            $rules['url'] = ['required', 'string', 'max:50', 'regex:/^[+\d\s\-().]+$/'];
         }
 
         $data = $request->validate($rules);
@@ -134,7 +136,7 @@ class QrCodeController extends Controller
         $type = $request->input('type', $qrCode->type ?? 'wifi');
 
         $rules = [
-            'type' => ['required', 'in:wifi,url'],
+            'type' => ['required', 'in:wifi,url,phone'],
             'name' => ['required', 'string', 'max:255'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
@@ -205,8 +207,10 @@ class QrCodeController extends Controller
                 'wifi_details_password_underline' => ['boolean'],
                 'wifi_details_password_color' => ['nullable', 'string', 'max:7'],
             ]);
-        } else {
+        } elseif ($type === 'url') {
             $rules['url'] = ['required', 'url', 'max:2048'];
+        } else {
+            $rules['url'] = ['required', 'string', 'max:50', 'regex:/^[+\d\s\-().]+$/'];
         }
 
         $data = $request->validate($rules);
