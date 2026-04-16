@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\UserInviteMail;
 use App\Models\User;
 use App\Models\UserInvite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -116,7 +118,7 @@ class UserController extends Controller
             'expires_hours' => ['required', 'integer', 'min:1', 'max:720'],
         ]);
 
-        UserInvite::create([
+        $invite = UserInvite::create([
             'email' => $data['email'],
             'first_name' => $data['first_name'] ?? null,
             'last_name' => $data['last_name'] ?? null,
@@ -126,7 +128,9 @@ class UserController extends Controller
             'expires_at' => now()->addHours($data['expires_hours']),
         ]);
 
-        return back()->with('success', 'Invite created.');
+        Mail::to($invite->email)->send(new UserInviteMail($invite));
+
+        return back()->with('success', 'Invite sent.');
     }
 
     public function destroyInvite(UserInvite $invite)
