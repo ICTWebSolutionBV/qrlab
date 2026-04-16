@@ -12,6 +12,8 @@ const showInviteForm = ref(false)
 
 const inviteForm = useForm({
     email: '',
+    first_name: '',
+    last_name: '',
     role: 'user',
     expires_hours: 72,
 })
@@ -62,6 +64,16 @@ const revokeInvite = (id) => {
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                     <input v-model="inviteForm.email" type="email" required
+                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                </div>
+                <div class="w-36">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input v-model="inviteForm.first_name" type="text"
+                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                </div>
+                <div class="w-36">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input v-model="inviteForm.last_name" type="text"
                         class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                 </div>
                 <div>

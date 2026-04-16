@@ -25,6 +25,8 @@ class InviteController extends Controller
         return Inertia::render('Auth/AcceptInvite', [
             'token' => $invite->token,
             'email' => $invite->email,
+            'first_name' => $invite->first_name ?? '',
+            'last_name' => $invite->last_name ?? '',
             'expires_at' => $invite->expires_at->toISOString(),
         ]);
     }
@@ -38,7 +40,8 @@ class InviteController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -48,7 +51,9 @@ class InviteController extends Controller
         }
 
         $user = User::create([
-            'name' => $validated['name'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'] ?? null,
+            'name' => trim($validated['first_name'] . ' ' . ($validated['last_name'] ?? '')),
             'email' => $invite->email,
             'password' => Hash::make($validated['password']),
             'role' => $invite->role,

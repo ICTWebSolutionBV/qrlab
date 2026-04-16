@@ -43,14 +43,17 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['required', Password::defaults(), 'confirmed'],
             'role' => ['required', 'in:user,admin'],
         ]);
 
         User::create([
-            'name' => $data['name'],
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'] ?? null,
+            'name' => trim($data['first_name'] . ' ' . ($data['last_name'] ?? '')),
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => $data['role'],
@@ -64,7 +67,8 @@ class UserController extends Controller
         return Inertia::render('Admin/Users/Edit', [
             'editUser' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'first_name' => $user->first_name ?? '',
+                'last_name' => $user->last_name ?? '',
                 'email' => $user->email,
                 'role' => $user->role,
             ],
@@ -74,12 +78,19 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
             'role' => ['required', 'in:user,admin'],
         ]);
 
-        $user->update($data);
+        $user->update([
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'] ?? null,
+            'name' => trim($data['first_name'] . ' ' . ($data['last_name'] ?? '')),
+            'email' => $data['email'],
+            'role' => $data['role'],
+        ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated.');
     }
@@ -99,12 +110,16 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'role' => ['required', 'in:user,admin'],
             'expires_hours' => ['required', 'integer', 'min:1', 'max:720'],
         ]);
 
         UserInvite::create([
             'email' => $data['email'],
+            'first_name' => $data['first_name'] ?? null,
+            'last_name' => $data['last_name'] ?? null,
             'token' => Str::random(64),
             'role' => $data['role'],
             'invited_by' => $request->user()->id,

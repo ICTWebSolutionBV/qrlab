@@ -417,7 +417,7 @@ const downloadQr = async (ext) => {
                                     <option value="nopass">None</option>
                                 </select>
                             </div>
-                            <div class="flex items-center justify-between pt-6">
+                            <div class="flex items-center gap-6 pt-6">
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Hidden network</span>
                                 <button type="button" @click="form.hidden_network = !form.hidden_network"
                                     :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.hidden_network ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">

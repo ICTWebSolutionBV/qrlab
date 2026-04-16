@@ -4,11 +4,14 @@ import { Head, useForm } from '@inertiajs/vue3'
 const props = defineProps({
     token: String,
     email: String,
+    first_name: String,
+    last_name: String,
     expires_at: String,
 })
 
 const form = useForm({
-    name: '',
+    first_name: props.first_name || '',
+    last_name: props.last_name || '',
     password: '',
     password_confirmation: '',
 })
@@ -32,11 +35,18 @@ const submit = () => {
 
             <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-800">
                 <form @submit.prevent="submit" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-                        <input v-model="form.name" type="text" required autofocus
-                            class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                        <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                            <input v-model="form.first_name" type="text" required autofocus
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            <p v-if="form.errors.first_name" class="text-red-500 text-xs mt-1">{{ form.errors.first_name }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <input v-model="form.last_name" type="text"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                        </div>
                     </div>
 
                     <div>
