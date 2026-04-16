@@ -18,6 +18,13 @@ class UserController extends Controller
 {
     public function index()
     {
+        // Auto-cleanup: remove invites that have been accepted (used_at set)
+        // or whose email already has a User account — either way the invite
+        // no longer serves a purpose.
+        UserInvite::whereNotNull('used_at')
+            ->orWhereIn('email', User::pluck('email'))
+            ->delete();
+
         return Inertia::render('Admin/Users/Index', [
             'users' => User::latest()->get()->map(fn ($user) => [
                 'id' => $user->id,
