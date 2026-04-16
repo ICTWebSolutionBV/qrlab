@@ -54,6 +54,22 @@ const form = useForm({
     type: props.qrCode.type || 'wifi',
     name: props.qrCode.name,
     url: props.qrCode.url || '',
+    vcard_data: {
+        first_name: props.qrCode.vcard_data?.first_name || '',
+        last_name: props.qrCode.vcard_data?.last_name || '',
+        mobile: props.qrCode.vcard_data?.mobile || '',
+        phone: props.qrCode.vcard_data?.phone || '',
+        fax: props.qrCode.vcard_data?.fax || '',
+        email: props.qrCode.vcard_data?.email || '',
+        company: props.qrCode.vcard_data?.company || '',
+        job_title: props.qrCode.vcard_data?.job_title || '',
+        street: props.qrCode.vcard_data?.street || '',
+        city: props.qrCode.vcard_data?.city || '',
+        postal_code: props.qrCode.vcard_data?.postal_code || '',
+        province: props.qrCode.vcard_data?.province || '',
+        country: props.qrCode.vcard_data?.country || '',
+        website: props.qrCode.vcard_data?.website || '',
+    },
     ssid: props.qrCode.ssid,
     password: props.qrCode.password || '',
     encryption: props.qrCode.encryption,
@@ -121,6 +137,24 @@ const form = useForm({
     tracking_enabled: props.qrCode.tracking_enabled,
 })
 
+function buildVcard(v) {
+    const lines = ['BEGIN:VCARD', 'VERSION:3.0']
+    const fn = [v.first_name, v.last_name].filter(Boolean).join(' ')
+    lines.push(`N:${v.last_name || ''};${v.first_name || ''};;;`)
+    lines.push(`FN:${fn || 'Contact'}`)
+    if (v.company)    lines.push(`ORG:${v.company}`)
+    if (v.job_title)  lines.push(`TITLE:${v.job_title}`)
+    if (v.mobile)     lines.push(`TEL;TYPE=CELL:${v.mobile}`)
+    if (v.phone)      lines.push(`TEL;TYPE=WORK:${v.phone}`)
+    if (v.fax)        lines.push(`TEL;TYPE=FAX:${v.fax}`)
+    if (v.email)      lines.push(`EMAIL:${v.email}`)
+    if (v.street || v.city || v.postal_code || v.province || v.country)
+        lines.push(`ADR;TYPE=WORK:;;${v.street || ''};${v.city || ''};${v.province || ''};${v.postal_code || ''};${v.country || ''}`)
+    if (v.website)    lines.push(`URL:${v.website}`)
+    lines.push('END:VCARD')
+    return lines.join('\n')
+}
+
 const qrContent = computed(() => {
     if (form.type === 'url') {
         if (form.tracking_enabled && props.qrCode.short_code) {
@@ -130,6 +164,9 @@ const qrContent = computed(() => {
     }
     if (form.type === 'phone') {
         return form.url ? `tel:${form.url}` : 'tel:+31612345678'
+    }
+    if (form.type === 'vcard') {
+        return buildVcard(form.vcard_data)
     }
     const enc = ['WPA', 'WPA2', 'WPA3'].includes(form.encryption) ? 'WPA' :
         form.encryption === 'WEP' ? 'WEP' : 'nopass'
@@ -317,7 +354,7 @@ const downloadQr = async (ext) => {
             <div class="flex-1 space-y-6">
                 <!-- Details card -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ form.type === 'url' ? 'URL Details' : form.type === 'phone' ? 'Phone Details' : 'WiFi Details' }}</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ form.type === 'url' ? 'URL Details' : form.type === 'phone' ? 'Phone Details' : form.type === 'vcard' ? 'vCard Details' : 'WiFi Details' }}</h2>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Code Name</label>
@@ -345,7 +382,91 @@ const downloadQr = async (ext) => {
                             </div>
                         </template>
 
-                        <!-- Re-open URL tracking block -->
+                        <!-- vCard fields -->
+                        <template v-else-if="form.type === 'vcard'">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                                    <input v-model="form.vcard_data.first_name" type="text" placeholder="John"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                                    <input v-model="form.vcard_data.last_name" type="text" placeholder="Doe"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company</label>
+                                    <input v-model="form.vcard_data.company" type="text"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
+                                    <input v-model="form.vcard_data.job_title" type="text"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mobile</label>
+                                <input v-model="form.vcard_data.mobile" type="tel"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+                                    <input v-model="form.vcard_data.phone" type="tel"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fax</label>
+                                    <input v-model="form.vcard_data.fax" type="tel"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                                <input v-model="form.vcard_data.email" type="email"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Street</label>
+                                <input v-model="form.vcard_data.street" type="text"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+                                    <input v-model="form.vcard_data.city" type="text"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Postal Code</label>
+                                    <input v-model="form.vcard_data.postal_code" type="text"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Province / State</label>
+                                    <input v-model="form.vcard_data.province" type="text"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+                                    <input v-model="form.vcard_data.country" type="text"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Website</label>
+                                <input v-model="form.vcard_data.website" type="url"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                        </template>
+
+                        <!-- URL tracking block -->
                         <template v-if="form.type === 'url'">
                             <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
                                 <div>

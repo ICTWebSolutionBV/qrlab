@@ -21,7 +21,7 @@ class QrCodeController extends Controller
         $type = $request->input('type', 'wifi');
 
         $rules = [
-            'type' => ['required', 'in:wifi,url,phone'],
+            'type' => ['required', 'in:wifi,url,phone,vcard'],
             'name' => ['required', 'string', 'max:255'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
@@ -94,8 +94,24 @@ class QrCodeController extends Controller
             ]);
         } elseif ($type === 'url') {
             $rules['url'] = ['required', 'url', 'max:2048'];
-        } else {
+        } elseif ($type === 'phone') {
             $rules['url'] = ['required', 'string', 'max:50', 'regex:/^[+\d\s\-().]+$/'];
+        } else {
+            $rules['vcard_data'] = ['required', 'array'];
+            $rules['vcard_data.first_name'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.last_name'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.mobile'] = ['nullable', 'string', 'max:50'];
+            $rules['vcard_data.phone'] = ['nullable', 'string', 'max:50'];
+            $rules['vcard_data.fax'] = ['nullable', 'string', 'max:50'];
+            $rules['vcard_data.email'] = ['nullable', 'email', 'max:255'];
+            $rules['vcard_data.company'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.job_title'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.street'] = ['nullable', 'string', 'max:255'];
+            $rules['vcard_data.city'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.postal_code'] = ['nullable', 'string', 'max:20'];
+            $rules['vcard_data.province'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.country'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.website'] = ['nullable', 'url', 'max:2048'];
         }
 
         $data = $request->validate($rules);
@@ -136,7 +152,7 @@ class QrCodeController extends Controller
         $type = $request->input('type', $qrCode->type ?? 'wifi');
 
         $rules = [
-            'type' => ['required', 'in:wifi,url,phone'],
+            'type' => ['required', 'in:wifi,url,phone,vcard'],
             'name' => ['required', 'string', 'max:255'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
@@ -209,8 +225,24 @@ class QrCodeController extends Controller
             ]);
         } elseif ($type === 'url') {
             $rules['url'] = ['required', 'url', 'max:2048'];
-        } else {
+        } elseif ($type === 'phone') {
             $rules['url'] = ['required', 'string', 'max:50', 'regex:/^[+\d\s\-().]+$/'];
+        } else {
+            $rules['vcard_data'] = ['required', 'array'];
+            $rules['vcard_data.first_name'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.last_name'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.mobile'] = ['nullable', 'string', 'max:50'];
+            $rules['vcard_data.phone'] = ['nullable', 'string', 'max:50'];
+            $rules['vcard_data.fax'] = ['nullable', 'string', 'max:50'];
+            $rules['vcard_data.email'] = ['nullable', 'email', 'max:255'];
+            $rules['vcard_data.company'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.job_title'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.street'] = ['nullable', 'string', 'max:255'];
+            $rules['vcard_data.city'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.postal_code'] = ['nullable', 'string', 'max:20'];
+            $rules['vcard_data.province'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.country'] = ['nullable', 'string', 'max:100'];
+            $rules['vcard_data.website'] = ['nullable', 'url', 'max:2048'];
         }
 
         $data = $request->validate($rules);

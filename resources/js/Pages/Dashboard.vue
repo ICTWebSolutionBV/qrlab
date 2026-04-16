@@ -46,11 +46,11 @@ const confirmDelete = (qr) => {
                 <div class="flex items-start justify-between mb-3">
                     <div class="min-w-0">
                         <h3 class="font-semibold text-gray-900 dark:text-white truncate">{{ qr.name }}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ qr.type === 'wifi' ? qr.ssid : qr.url }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ qr.type === 'wifi' ? qr.ssid : qr.type === 'vcard' ? [qr.vcard_data?.first_name, qr.vcard_data?.last_name].filter(Boolean).join(' ') : qr.url }}</p>
                     </div>
                     <div class="flex flex-col items-end gap-1 shrink-0 ml-2">
                         <span class="text-xs px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400">
-                            {{ qr.type === 'url' ? 'URL' : qr.type === 'phone' ? 'Phone' : qr.encryption }}
+                            {{ qr.type === 'url' ? 'URL' : qr.type === 'phone' ? 'Phone' : qr.type === 'vcard' ? 'vCard' : qr.encryption }}
                         </span>
                         <span v-if="qr.tracking_enabled" class="text-xs text-gray-400 dark:text-gray-500">
                             {{ qr.scans_count }} scan{{ qr.scans_count === 1 ? '' : 's' }}
