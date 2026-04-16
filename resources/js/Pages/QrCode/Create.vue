@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import QrPreview from '@/Components/QrPreview.vue'
+import TextLabelEditor from '@/Components/TextLabelEditor.vue'
+import { getFontStack, monospace } from '@/config/fonts.js'
 
 const page = usePage()
 const user = computed(() => page.props.auth?.user)
@@ -29,11 +31,26 @@ const form = useForm({
     header_color: '#000000',
     header_alignment: 'center',
     header_margin: 8,
+    header_font_family: 'Inter',
+    header_bold: false,
+    header_italic: false,
+    header_underline: false,
     footer_text: '',
     footer_font_size: '14',
     footer_color: '#000000',
     footer_alignment: 'center',
     footer_margin: 8,
+    footer_font_family: 'Inter',
+    footer_bold: false,
+    footer_italic: false,
+    footer_underline: false,
+    show_wifi_details: false,
+    wifi_details_font_size: '14',
+    wifi_details_color: '#000000',
+    wifi_details_alignment: 'center',
+    wifi_details_password_font: 'Roboto Mono',
+    wifi_details_show_password: true,
+    wifi_details_margin_top: 8,
     logo: null,
     logo_size: 30,
     tracking_enabled: false,
@@ -47,6 +64,89 @@ const wifiString = computed(() => {
     const hidden = form.hidden_network ? 'true' : 'false'
     return `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`
 })
+
+// TextLabelEditor bindings
+const headerLabel = computed(() => ({
+    text: form.header_text,
+    fontFamily: form.header_font_family,
+    fontSize: form.header_font_size,
+    color: form.header_color,
+    bold: form.header_bold,
+    italic: form.header_italic,
+    underline: form.header_underline,
+    alignment: form.header_alignment,
+    margin: form.header_margin,
+}))
+
+function updateHeader(val) {
+    form.header_text = val.text
+    form.header_font_family = val.fontFamily
+    form.header_font_size = val.fontSize
+    form.header_color = val.color
+    form.header_bold = val.bold
+    form.header_italic = val.italic
+    form.header_underline = val.underline
+    form.header_alignment = val.alignment
+    form.header_margin = val.margin
+}
+
+const footerLabel = computed(() => ({
+    text: form.footer_text,
+    fontFamily: form.footer_font_family,
+    fontSize: form.footer_font_size,
+    color: form.footer_color,
+    bold: form.footer_bold,
+    italic: form.footer_italic,
+    underline: form.footer_underline,
+    alignment: form.footer_alignment,
+    margin: form.footer_margin,
+}))
+
+function updateFooter(val) {
+    form.footer_text = val.text
+    form.footer_font_family = val.fontFamily
+    form.footer_font_size = val.fontSize
+    form.footer_color = val.color
+    form.footer_bold = val.bold
+    form.footer_italic = val.italic
+    form.footer_underline = val.underline
+    form.footer_alignment = val.alignment
+    form.footer_margin = val.margin
+}
+
+// Preview style helpers
+const headerStyle = computed(() => ({
+    fontFamily: getFontStack(form.header_font_family),
+    fontSize: form.header_font_size + 'px',
+    color: form.header_color,
+    fontWeight: form.header_bold ? '700' : '400',
+    fontStyle: form.header_italic ? 'italic' : 'normal',
+    textDecoration: form.header_underline ? 'underline' : 'none',
+    textAlign: form.header_alignment,
+    marginBottom: form.header_margin + 'px',
+}))
+
+const footerStyle = computed(() => ({
+    fontFamily: getFontStack(form.footer_font_family),
+    fontSize: form.footer_font_size + 'px',
+    color: form.footer_color,
+    fontWeight: form.footer_bold ? '700' : '400',
+    fontStyle: form.footer_italic ? 'italic' : 'normal',
+    textDecoration: form.footer_underline ? 'underline' : 'none',
+    textAlign: form.footer_alignment,
+    marginTop: form.footer_margin + 'px',
+}))
+
+const wifiDetailsBaseStyle = computed(() => ({
+    fontSize: form.wifi_details_font_size + 'px',
+    color: form.wifi_details_color,
+    textAlign: form.wifi_details_alignment,
+    marginTop: form.wifi_details_margin_top + 'px',
+}))
+
+const wifiPasswordStyle = computed(() => ({
+    fontFamily: getFontStack(form.wifi_details_password_font),
+}))
 
 const dotStyles = [
     { value: 'square', label: 'Square' },
@@ -135,104 +235,126 @@ const downloadQr = async (ext) => {
 
                 <!-- Text Labels -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Text Labels (Optional)</h2>
-                    <div class="space-y-5">
-                        <!-- Header -->
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Header Text</label>
-                                <input v-model="form.header_text" type="text" placeholder="Text above QR code"
-                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                            </div>
-                            <div v-if="form.header_text" class="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Size</label>
-                                    <select v-model="form.header_font_size"
-                                        class="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs">
-                                        <option value="12">12px</option>
-                                        <option value="14">14px</option>
-                                        <option value="16">16px</option>
-                                        <option value="18">18px</option>
-                                        <option value="20">20px</option>
-                                        <option value="24">24px</option>
-                                        <option value="28">28px</option>
-                                        <option value="32">32px</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Color</label>
-                                    <div class="flex items-center gap-1">
-                                        <input v-model="form.header_color" type="color" class="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 cursor-pointer" />
-                                        <input v-model="form.header_color" type="text" class="flex-1 min-w-0 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Align</label>
-                                    <div class="flex border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
-                                        <button v-for="a in ['left', 'center', 'right']" :key="a"
-                                            @click="form.header_alignment = a"
-                                            :class="[form.header_alignment === a ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400']"
-                                            class="flex-1 py-1.5 text-xs font-medium transition-colors">
-                                            {{ a.charAt(0).toUpperCase() }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="form.header_text">
-                                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Margin ({{ form.header_margin }}px)</label>
-                                <input v-model.number="form.header_margin" type="range" min="0" max="40" class="w-full" />
-                            </div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Text Labels</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Header</p>
+                            <TextLabelEditor
+                                :model-value="headerLabel"
+                                @update:model-value="updateHeader"
+                                label="Header Text"
+                            />
                         </div>
-
-                        <div v-if="form.header_text || form.footer_text" class="border-t border-gray-200 dark:border-gray-700"></div>
-
-                        <!-- Footer -->
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Footer Text</label>
-                                <input v-model="form.footer_text" type="text" placeholder="Text below QR code"
-                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                            </div>
-                            <div v-if="form.footer_text" class="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Size</label>
-                                    <select v-model="form.footer_font_size"
-                                        class="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs">
-                                        <option value="12">12px</option>
-                                        <option value="14">14px</option>
-                                        <option value="16">16px</option>
-                                        <option value="18">18px</option>
-                                        <option value="20">20px</option>
-                                        <option value="24">24px</option>
-                                        <option value="28">28px</option>
-                                        <option value="32">32px</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Color</label>
-                                    <div class="flex items-center gap-1">
-                                        <input v-model="form.footer_color" type="color" class="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 cursor-pointer" />
-                                        <input v-model="form.footer_color" type="text" class="flex-1 min-w-0 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Align</label>
-                                    <div class="flex border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
-                                        <button v-for="a in ['left', 'center', 'right']" :key="a"
-                                            @click="form.footer_alignment = a"
-                                            :class="[form.footer_alignment === a ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400']"
-                                            class="flex-1 py-1.5 text-xs font-medium transition-colors">
-                                            {{ a.charAt(0).toUpperCase() }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="form.footer_text">
-                                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Margin ({{ form.footer_margin }}px)</label>
-                                <input v-model.number="form.footer_margin" type="range" min="0" max="40" class="w-full" />
-                            </div>
+                        <div class="border-t border-gray-100 dark:border-gray-800 pt-4">
+                            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Footer</p>
+                            <TextLabelEditor
+                                :model-value="footerLabel"
+                                @update:model-value="updateFooter"
+                                label="Footer Text"
+                            />
                         </div>
                     </div>
+                </div>
+
+                <!-- WiFi Info Display -->
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">WiFi Info Display</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Show network name and password below the QR code</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="form.show_wifi_details = !form.show_wifi_details"
+                            :class="[
+                                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
+                                form.show_wifi_details ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700'
+                            ]"
+                        >
+                            <span
+                                :class="[
+                                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                                    form.show_wifi_details ? 'translate-x-5' : 'translate-x-0'
+                                ]"
+                            />
+                        </button>
+                    </div>
+
+                    <template v-if="form.show_wifi_details">
+                        <div class="space-y-4">
+                            <!-- Font size + color -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Font Size</label>
+                                    <select v-model="form.wifi_details_font_size"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <option value="12">12px</option>
+                                        <option value="14">14px</option>
+                                        <option value="16">16px</option>
+                                        <option value="18">18px</option>
+                                        <option value="20">20px</option>
+                                        <option value="24">24px</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Color</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" v-model="form.wifi_details_color"
+                                            class="w-8 h-8 rounded cursor-pointer border border-gray-200 dark:border-gray-700 p-0.5 bg-white dark:bg-gray-800" />
+                                        <input type="text" v-model="form.wifi_details_color" maxlength="7"
+                                            class="w-24 px-2 py-1.5 text-sm font-mono border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alignment + margin -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Alignment</label>
+                                    <div class="flex gap-1">
+                                        <button v-for="align in ['left', 'center', 'right']" :key="align"
+                                            type="button"
+                                            @click="form.wifi_details_alignment = align"
+                                            :class="[
+                                                'flex-1 py-1.5 rounded text-xs border capitalize transition-colors',
+                                                form.wifi_details_alignment === align
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white'
+                                                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400'
+                                            ]">
+                                            <span v-if="align === 'left'">&#9664;</span>
+                                            <span v-else-if="align === 'center'">&#9644;</span>
+                                            <span v-else>&#9654;</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Margin Top <span class="text-gray-400">{{ form.wifi_details_margin_top }}px</span></label>
+                                    <input type="range" v-model.number="form.wifi_details_margin_top" min="0" max="60"
+                                        class="w-full accent-emerald-600" />
+                                </div>
+                            </div>
+
+                            <!-- Password font + show/hide -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Password Font</label>
+                                    <select v-model="form.wifi_details_password_font"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <option v-for="font in monospace" :key="font.value" :value="font.value" :style="{ fontFamily: font.stack }">
+                                            {{ font.label }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end pb-1">
+                                    <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                                        <input v-model="form.wifi_details_show_password" type="checkbox"
+                                            class="rounded border-gray-300 dark:border-gray-700 text-emerald-600 focus:ring-emerald-500" />
+                                        Show password
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- Styling -->
@@ -323,9 +445,7 @@ const downloadQr = async (ext) => {
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">Preview</h2>
 
                         <!-- Header text -->
-                        <p v-if="form.header_text"
-                            :style="{ fontSize: form.header_font_size + 'px', color: form.header_color, textAlign: form.header_alignment, marginBottom: form.header_margin + 'px' }"
-                            class="font-medium">{{ form.header_text }}</p>
+                        <p v-if="form.header_text" :style="headerStyle">{{ form.header_text }}</p>
 
                         <div class="flex justify-center">
                             <QrPreview
@@ -346,9 +466,19 @@ const downloadQr = async (ext) => {
                         </div>
 
                         <!-- Footer text -->
-                        <p v-if="form.footer_text"
-                            :style="{ fontSize: form.footer_font_size + 'px', color: form.footer_color, textAlign: form.footer_alignment, marginTop: form.footer_margin + 'px' }"
-                            class="font-medium">{{ form.footer_text }}</p>
+                        <p v-if="form.footer_text" :style="footerStyle">{{ form.footer_text }}</p>
+
+                        <!-- WiFi info block -->
+                        <div v-if="form.show_wifi_details" :style="wifiDetailsBaseStyle" class="space-y-1">
+                            <p>
+                                <span class="font-medium">WiFi Name: </span>
+                                <span>{{ form.ssid || 'MyNetwork' }}</span>
+                            </p>
+                            <p v-if="form.wifi_details_show_password && form.password">
+                                <span class="font-medium">Password: </span>
+                                <span :style="wifiPasswordStyle">{{ form.password }}</span>
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Quick download -->
