@@ -61,12 +61,12 @@ const revokeInvite = (id) => {
         <div v-if="showInviteForm" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Send Invite</h2>
             <form @submit.prevent="createInvite" class="flex flex-wrap gap-3 items-end">
-                <div class="w-36">
+                <div class="flex-1 min-w-[140px]">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name <span class="text-gray-400 font-normal">(optional)</span></label>
                     <input v-model="inviteForm.first_name" type="text" placeholder="Jane"
                         class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                 </div>
-                <div class="w-36">
+                <div class="flex-1 min-w-[140px]">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name <span class="text-gray-400 font-normal">(optional)</span></label>
                     <input v-model="inviteForm.last_name" type="text" placeholder="Doe"
                         class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
