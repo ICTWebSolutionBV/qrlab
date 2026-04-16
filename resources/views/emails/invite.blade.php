@@ -4,61 +4,105 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>You're invited to {{ $appName }}</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; }
-        .wrapper { max-width: 560px; margin: 40px auto; padding: 0 16px; }
-        .card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
-        .header { background: linear-gradient(135deg, #1f2937 0%, #111827 60%, #064e3b 100%); padding: 40px 40px 32px; text-align: center; }
-        .logo { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; background: #059669; border-radius: 14px; margin-bottom: 16px; }
-        .logo svg { width: 32px; height: 32px; }
-        .header h1 { color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
-        .body { padding: 36px 40px; }
-        .greeting { font-size: 16px; color: #374151; margin-bottom: 16px; line-height: 1.6; }
-        .message { font-size: 15px; color: #6b7280; line-height: 1.7; margin-bottom: 28px; }
-        .btn { display: block; width: fit-content; margin: 0 auto 28px; padding: 14px 32px; background: #059669; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; letter-spacing: 0.1px; }
-        .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
-        .link-fallback { font-size: 13px; color: #9ca3af; line-height: 1.6; }
-        .link-fallback a { color: #059669; word-break: break-all; }
-        .expires { font-size: 13px; color: #9ca3af; text-align: center; margin-top: 8px; }
-        .footer { padding: 20px 40px; background: #f9fafb; border-top: 1px solid #e5e7eb; text-align: center; }
-        .footer p { font-size: 12px; color: #9ca3af; line-height: 1.6; }
-    </style>
 </head>
-<body>
-<div class="wrapper">
-    <div class="card">
-        <div class="header">
-            <div class="logo">
-                <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-            </div>
-            <h1>{{ $appName }}</h1>
-        </div>
+<body style="margin:0;padding:0;background-color:#111827;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 
-        <div class="body">
-            <p class="greeting">
-                Hi{{ $firstName ? ' ' . $firstName : '' }},
-            </p>
-            <p class="message">
-                <strong>{{ $inviterName }}</strong> has invited you to join <strong>{{ $appName }}</strong> — a QR code generator that lets you create, manage, and track QR codes.
-            </p>
+    <!-- Outer wrapper -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#111827;min-height:100vh;">
+        <tr>
+            <td align="center" style="padding:48px 16px;">
 
-            <a href="{{ $inviteUrl }}" class="btn">Accept Invitation</a>
+                <!-- Card -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
 
-            <p class="expires">This invitation expires on {{ $expiresAt->format('F j, Y \a\t g:i A') }}.</p>
+                    <!-- Logo + name header -->
+                    <tr>
+                        <td align="center" style="padding-bottom:28px;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="vertical-align:middle;padding-right:12px;">
+                                        <!-- Icon box -->
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="width:48px;height:48px;background-color:#059669;border-radius:12px;text-align:center;vertical-align:middle;">
+                                                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCI+PHBhdGggZD0iTTEyIDR2MW02IDExaDJtLTYgMGgtMnY0bTAtMTF2M20wIDBoLjAxTTEyIDEyaDQuMDFNMTYgMjBoNE00IDEyaDRtMTIgMGguMDFNNSA4aDJhMSAxIDAgMDAxLTFWNWExIDEgMCAwMC0xLTFINWExIDEgMCAwMC0xIDF2MmExIDEgMCAwMDEgMXptMTIgMGgyYTEgMSAwIDAwMS0xVjVhMSAxIDAgMDAtMS0xaC0yYTEgMSAwIDAwLTEgMXYyYTEgMSAwIDAwMSAxek01IDIwaDJhMSAxIDAgMDAxLTF2LTJhMSAxIDAgMDAtMS0xSDVhMSAxIDAgMDAtMSAxdjJhMSAxIDAgMDAxIDF6Ii8+PC9zdmc+" width="28" height="28" alt="" style="display:block;margin:10px auto;" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <span style="font-size:26px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">{{ $appName }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
 
-            <hr class="divider" />
+                    <!-- White card -->
+                    <tr>
+                        <td style="background-color:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
 
-            <p class="link-fallback">
-                If the button doesn't work, copy and paste this link into your browser:<br />
-                <a href="{{ $inviteUrl }}">{{ $inviteUrl }}</a>
-            </p>
-        </div>
+                                <!-- Card body -->
+                                <tr>
+                                    <td style="padding:36px 40px 32px;">
+                                        <p style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">You're invited!</p>
+                                        <p style="font-size:15px;color:#6b7280;line-height:1.7;margin:0 0 28px;">
+                                            Hi{{ $firstName ? ' ' . e($firstName) : '' }},<br /><br />
+                                            <span style="color:#374151;font-weight:600;">{{ e($inviterName) }}</span> has invited you to join <span style="color:#374151;font-weight:600;">{{ $appName }}</span> — a QR code platform for creating, managing, and tracking QR codes.
+                                        </p>
 
-        <div class="footer">
-            <p>You received this email because someone invited you to {{ $appName }}.<br />If you weren't expecting this, you can safely ignore it.</p>
-        </div>
-    </div>
-</div>
+                                        <!-- CTA button -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom:24px;">
+                                                    <a href="{{ $inviteUrl }}" style="display:inline-block;padding:14px 40px;background-color:#111827;color:#ffffff;text-decoration:none;border-radius:12px;font-size:15px;font-weight:600;letter-spacing:0.1px;">Accept Invitation</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Expiry -->
+                                        <p style="font-size:13px;color:#9ca3af;text-align:center;margin:0 0 24px;">
+                                            This invitation expires on <span style="color:#6b7280;font-weight:500;">{{ $expiresAt->format('F j, Y \a\t g:i A') }}</span>.
+                                        </p>
+
+                                        <!-- Divider -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td style="border-top:1px solid #e5e7eb;padding-bottom:20px;"></td></tr>
+                                        </table>
+
+                                        <!-- Fallback link -->
+                                        <p style="font-size:12px;color:#9ca3af;line-height:1.6;margin:0;">
+                                            If the button doesn't work, paste this link into your browser:<br />
+                                            <a href="{{ $inviteUrl }}" style="color:#059669;word-break:break-all;">{{ $inviteUrl }}</a>
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- Card footer -->
+                                <tr>
+                                    <td style="background-color:#f9fafb;border-top:1px solid #e5e7eb;padding:16px 40px;border-radius:0 0 20px 20px;">
+                                        <p style="font-size:12px;color:#9ca3af;text-align:center;margin:0;line-height:1.6;">
+                                            You received this because someone invited you to {{ $appName }}.<br />If you weren't expecting this, you can safely ignore it.
+                                        </p>
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Bottom copyright -->
+                    <tr>
+                        <td align="center" style="padding-top:24px;">
+                            <p style="font-size:12px;color:#4b5563;margin:0;">&copy; {{ date('Y') }} ICTWebSolution B.V. All rights reserved.</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>
