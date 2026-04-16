@@ -56,6 +56,11 @@ const form = useForm({
     type: 'wifi',
     name: '',
     url: '',
+    email_data: {
+        to: '',
+        subject: '',
+        body: '',
+    },
     vcard_data: {
         first_name: '',
         last_name: '',
@@ -139,6 +144,15 @@ const form = useForm({
     tracking_enabled: false,
 })
 
+function buildMailto(e) {
+    let uri = `mailto:${e.to || ''}`
+    const params = []
+    if (e.subject) params.push(`subject=${encodeURIComponent(e.subject)}`)
+    if (e.body)    params.push(`body=${encodeURIComponent(e.body)}`)
+    if (params.length) uri += '?' + params.join('&')
+    return uri
+}
+
 function buildVcard(v) {
     const lines = ['BEGIN:VCARD', 'VERSION:3.0']
     const fn = [v.first_name, v.last_name].filter(Boolean).join(' ')
@@ -166,6 +180,9 @@ const qrContent = computed(() => {
     }
     if (form.type === 'vcard') {
         return buildVcard(form.vcard_data)
+    }
+    if (form.type === 'email') {
+        return buildMailto(form.email_data)
     }
     const enc = ['WPA', 'WPA2', 'WPA3'].includes(form.encryption) ? 'WPA' :
         form.encryption === 'WEP' ? 'WEP' : 'nopass'
@@ -367,6 +384,10 @@ const downloadQr = async (ext) => {
                         :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors', form.type === 'vcard' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']">
                         vCard
                     </button>
+                    <button type="button" @click="form.type = 'email'"
+                        :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors', form.type === 'email' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']">
+                        Email
+                    </button>
                 </div>
 
                 <!-- WiFi Details -->
@@ -431,7 +452,7 @@ const downloadQr = async (ext) => {
                 </div>
 
                 <!-- vCard Details -->
-                <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <div v-else-if="form.type === 'vcard'" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">vCard Details</h2>
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-3">
@@ -513,6 +534,29 @@ const downloadQr = async (ext) => {
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Website</label>
                             <input v-model="form.vcard_data.website" type="url" placeholder="https://example.com"
                                 class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Details -->
+                <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Email Details</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                            <input v-model="form.email_data.to" type="email" placeholder="recipient@example.com"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            <p v-if="form.errors['email_data.to']" class="text-red-500 text-xs mt-1">{{ form.errors['email_data.to'] }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <input v-model="form.email_data.subject" type="text" placeholder="Subject line"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <textarea v-model="form.email_data.body" rows="4" placeholder="Message body..."
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition resize-none" />
                         </div>
                     </div>
                 </div>
@@ -953,7 +997,7 @@ const downloadQr = async (ext) => {
                                 <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled ? 'translate-x-5' : 'translate-x-0']" />
                             </button>
                         </div>
-                        <button @click="submit" :disabled="form.processing || !form.name || (form.type === 'wifi' ? !form.ssid : form.type === 'vcard' ? !form.vcard_data.first_name && !form.vcard_data.last_name : !form.url.trim())"
+                        <button @click="submit" :disabled="form.processing || !form.name || (form.type === 'wifi' ? !form.ssid : form.type === 'vcard' ? !form.vcard_data.first_name && !form.vcard_data.last_name : form.type === 'email' ? !form.email_data.to.trim() : !form.url.trim())"
                             class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">
                             {{ form.processing ? 'Saving...' : 'Save QR Code' }}
                         </button>

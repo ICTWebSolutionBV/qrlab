@@ -85,6 +85,7 @@ class QrCode extends Model
         'frame_color',
         'frame_text',
         'vcard_data',
+        'email_data',
         'tracking_enabled',
         'short_code',
     ];
@@ -130,6 +131,7 @@ class QrCode extends Model
             'margin' => 'integer',
             'logo_size' => 'integer',
             'vcard_data' => 'array',
+            'email_data' => 'array',
         ];
     }
 

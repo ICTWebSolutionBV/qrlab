@@ -21,7 +21,7 @@ class QrCodeController extends Controller
         $type = $request->input('type', 'wifi');
 
         $rules = [
-            'type' => ['required', 'in:wifi,url,phone,vcard'],
+            'type' => ['required', 'in:wifi,url,phone,vcard,email'],
             'name' => ['required', 'string', 'max:255'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
@@ -96,7 +96,7 @@ class QrCodeController extends Controller
             $rules['url'] = ['required', 'url', 'max:2048'];
         } elseif ($type === 'phone') {
             $rules['url'] = ['required', 'string', 'max:50', 'regex:/^[+\d\s\-().]+$/'];
-        } else {
+        } elseif ($type === 'vcard') {
             $rules['vcard_data'] = ['required', 'array'];
             $rules['vcard_data.first_name'] = ['nullable', 'string', 'max:100'];
             $rules['vcard_data.last_name'] = ['nullable', 'string', 'max:100'];
@@ -112,6 +112,11 @@ class QrCodeController extends Controller
             $rules['vcard_data.province'] = ['nullable', 'string', 'max:100'];
             $rules['vcard_data.country'] = ['nullable', 'string', 'max:100'];
             $rules['vcard_data.website'] = ['nullable', 'url', 'max:2048'];
+        } else {
+            $rules['email_data'] = ['required', 'array'];
+            $rules['email_data.to'] = ['required', 'email', 'max:255'];
+            $rules['email_data.subject'] = ['nullable', 'string', 'max:255'];
+            $rules['email_data.body'] = ['nullable', 'string', 'max:2000'];
         }
 
         $data = $request->validate($rules);
@@ -152,7 +157,7 @@ class QrCodeController extends Controller
         $type = $request->input('type', $qrCode->type ?? 'wifi');
 
         $rules = [
-            'type' => ['required', 'in:wifi,url,phone,vcard'],
+            'type' => ['required', 'in:wifi,url,phone,vcard,email'],
             'name' => ['required', 'string', 'max:255'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
@@ -227,7 +232,7 @@ class QrCodeController extends Controller
             $rules['url'] = ['required', 'url', 'max:2048'];
         } elseif ($type === 'phone') {
             $rules['url'] = ['required', 'string', 'max:50', 'regex:/^[+\d\s\-().]+$/'];
-        } else {
+        } elseif ($type === 'vcard') {
             $rules['vcard_data'] = ['required', 'array'];
             $rules['vcard_data.first_name'] = ['nullable', 'string', 'max:100'];
             $rules['vcard_data.last_name'] = ['nullable', 'string', 'max:100'];
@@ -243,6 +248,11 @@ class QrCodeController extends Controller
             $rules['vcard_data.province'] = ['nullable', 'string', 'max:100'];
             $rules['vcard_data.country'] = ['nullable', 'string', 'max:100'];
             $rules['vcard_data.website'] = ['nullable', 'url', 'max:2048'];
+        } else {
+            $rules['email_data'] = ['required', 'array'];
+            $rules['email_data.to'] = ['required', 'email', 'max:255'];
+            $rules['email_data.subject'] = ['nullable', 'string', 'max:255'];
+            $rules['email_data.body'] = ['nullable', 'string', 'max:2000'];
         }
 
         $data = $request->validate($rules);

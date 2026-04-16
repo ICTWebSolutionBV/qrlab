@@ -54,6 +54,11 @@ const form = useForm({
     type: props.qrCode.type || 'wifi',
     name: props.qrCode.name,
     url: props.qrCode.url || '',
+    email_data: {
+        to: props.qrCode.email_data?.to || '',
+        subject: props.qrCode.email_data?.subject || '',
+        body: props.qrCode.email_data?.body || '',
+    },
     vcard_data: {
         first_name: props.qrCode.vcard_data?.first_name || '',
         last_name: props.qrCode.vcard_data?.last_name || '',
@@ -137,6 +142,15 @@ const form = useForm({
     tracking_enabled: props.qrCode.tracking_enabled,
 })
 
+function buildMailto(e) {
+    let uri = `mailto:${e.to || ''}`
+    const params = []
+    if (e.subject) params.push(`subject=${encodeURIComponent(e.subject)}`)
+    if (e.body)    params.push(`body=${encodeURIComponent(e.body)}`)
+    if (params.length) uri += '?' + params.join('&')
+    return uri
+}
+
 function buildVcard(v) {
     const lines = ['BEGIN:VCARD', 'VERSION:3.0']
     const fn = [v.first_name, v.last_name].filter(Boolean).join(' ')
@@ -167,6 +181,9 @@ const qrContent = computed(() => {
     }
     if (form.type === 'vcard') {
         return buildVcard(form.vcard_data)
+    }
+    if (form.type === 'email') {
+        return buildMailto(form.email_data)
     }
     const enc = ['WPA', 'WPA2', 'WPA3'].includes(form.encryption) ? 'WPA' :
         form.encryption === 'WEP' ? 'WEP' : 'nopass'
@@ -354,7 +371,7 @@ const downloadQr = async (ext) => {
             <div class="flex-1 space-y-6">
                 <!-- Details card -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ form.type === 'url' ? 'URL Details' : form.type === 'phone' ? 'Phone Details' : form.type === 'vcard' ? 'vCard Details' : 'WiFi Details' }}</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ form.type === 'url' ? 'URL Details' : form.type === 'phone' ? 'Phone Details' : form.type === 'vcard' ? 'vCard Details' : form.type === 'email' ? 'Email Details' : 'WiFi Details' }}</h2>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Code Name</label>
@@ -463,6 +480,26 @@ const downloadQr = async (ext) => {
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Website</label>
                                 <input v-model="form.vcard_data.website" type="url"
                                     class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                        </template>
+
+                        <!-- Email fields -->
+                        <template v-else-if="form.type === 'email'">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                                <input v-model="form.email_data.to" type="email"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                <p v-if="form.errors['email_data.to']" class="text-red-500 text-xs mt-1">{{ form.errors['email_data.to'] }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject <span class="text-gray-400 font-normal">(optional)</span></label>
+                                <input v-model="form.email_data.subject" type="text"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message <span class="text-gray-400 font-normal">(optional)</span></label>
+                                <textarea v-model="form.email_data.body" rows="4"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition resize-none" />
                             </div>
                         </template>
 
