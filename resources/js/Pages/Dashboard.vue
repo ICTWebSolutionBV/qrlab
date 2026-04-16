@@ -46,11 +46,16 @@ const confirmDelete = (qr) => {
                 <div class="flex items-start justify-between mb-3">
                     <div class="min-w-0">
                         <h3 class="font-semibold text-gray-900 dark:text-white truncate">{{ qr.name }}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ qr.ssid }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ qr.type === 'url' ? qr.url : qr.ssid }}</p>
                     </div>
-                    <span class="text-xs px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shrink-0">
-                        {{ qr.encryption }}
-                    </span>
+                    <div class="flex flex-col items-end gap-1 shrink-0 ml-2">
+                        <span class="text-xs px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400">
+                            {{ qr.type === 'url' ? 'URL' : qr.encryption }}
+                        </span>
+                        <span v-if="qr.tracking_enabled" class="text-xs text-gray-400 dark:text-gray-500">
+                            {{ qr.scans_count }} scan{{ qr.scans_count === 1 ? '' : 's' }}
+                        </span>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2 mt-3">
                     <Link :href="route('qr.edit', qr.id)"

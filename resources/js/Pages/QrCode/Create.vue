@@ -6,6 +6,10 @@ import QrPreview from '@/Components/QrPreview.vue'
 import TextLabelEditor from '@/Components/TextLabelEditor.vue'
 import { getFontStack, monospace, sansSerif } from '@/config/fonts.js'
 
+const props = defineProps({
+    appUrl: String,
+})
+
 const page = usePage()
 const user = computed(() => page.props.auth?.user)
 
@@ -49,7 +53,9 @@ function toggleWifiCustomMargin() {
 }
 
 const form = useForm({
+    type: 'wifi',
     name: '',
+    url: '',
     ssid: '',
     password: '',
     encryption: 'WPA2',
@@ -117,7 +123,10 @@ const form = useForm({
     tracking_enabled: false,
 })
 
-const wifiString = computed(() => {
+const qrContent = computed(() => {
+    if (form.type === 'url') {
+        return form.url || 'https://example.com'
+    }
     const enc = ['WPA', 'WPA2', 'WPA3'].includes(form.encryption) ? 'WPA' :
         form.encryption === 'WEP' ? 'WEP' : 'nopass'
     const ssid = (form.ssid || 'MyNetwork').replace(/([\\;,":])/, '\\$1')
@@ -291,16 +300,29 @@ const downloadQr = async (ext) => {
 </script>
 
 <template>
-    <Head title="WiFi QR Code Generator" />
+    <Head :title="form.type === 'url' ? 'URL QR Code Generator' : 'WiFi QR Code Generator'" />
     <AppLayout>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">WiFi QR Code Generator</h1>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Generate a QR code for your WiFi network. Scan it with any phone to connect instantly.</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">QR Code Generator</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Generate a QR code for a URL or WiFi network.</p>
 
         <div class="flex flex-col lg:flex-row gap-6">
             <!-- Left: Form -->
             <div class="flex-1 space-y-6">
+
+                <!-- Type switcher -->
+                <div class="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-fit">
+                    <button type="button" @click="form.type = 'wifi'"
+                        :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors', form.type === 'wifi' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']">
+                        WiFi
+                    </button>
+                    <button type="button" @click="form.type = 'url'"
+                        :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors', form.type === 'url' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']">
+                        URL
+                    </button>
+                </div>
+
                 <!-- WiFi Details -->
-                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <div v-if="form.type === 'wifi'" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">WiFi Details</h2>
                     <div class="space-y-4">
                         <div>
@@ -334,6 +356,17 @@ const downloadQr = async (ext) => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- URL Details -->
+                <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">URL Details</h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
+                        <input v-model="form.url" type="url" placeholder="https://example.com"
+                            class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                        <p v-if="form.errors.url" class="text-red-500 text-xs mt-1">{{ form.errors.url }}</p>
                     </div>
                 </div>
 
@@ -378,7 +411,7 @@ const downloadQr = async (ext) => {
                 </div>
 
                 <!-- WiFi Info Display -->
-                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <div v-if="form.type === 'wifi'" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">WiFi Info Display</h2>
@@ -705,7 +738,7 @@ const downloadQr = async (ext) => {
                         <div class="flex justify-center">
                             <QrPreview
                                 ref="qrPreviewRef"
-                                :data="wifiString"
+                                :data="qrContent"
                                 :width="280"
                                 :height="280"
                                 :margin="form.margin"
@@ -759,11 +792,21 @@ const downloadQr = async (ext) => {
                     <template v-if="user">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Code Name</label>
-                            <input v-model="form.name" type="text" placeholder="e.g. Office WiFi"
+                            <input v-model="form.name" type="text" :placeholder="form.type === 'url' ? 'e.g. Company Website' : 'e.g. Office WiFi'"
                                 class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                             <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
                         </div>
-                        <button @click="submit" :disabled="form.processing || !form.name || !form.ssid"
+                        <div v-if="form.type === 'url'" class="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Track scans</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">QR redirects via a tracking link</p>
+                            </div>
+                            <button type="button" @click="form.tracking_enabled = !form.tracking_enabled"
+                                :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.tracking_enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                            </button>
+                        </div>
+                        <button @click="submit" :disabled="form.processing || !form.name || (form.type === 'wifi' ? !form.ssid : !form.url)"
                             class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">
                             {{ form.processing ? 'Saving...' : 'Save QR Code' }}
                         </button>

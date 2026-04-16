@@ -10,6 +10,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $qrCodes = $request->user()->qrCodes()
+            ->withCount('scans')
             ->latest()
             ->paginate(12);
 

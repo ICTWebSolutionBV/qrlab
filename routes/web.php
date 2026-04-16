@@ -26,6 +26,9 @@ Route::middleware('guest')->group(function () {
 // Public QR code generator
 Route::get('/', [QrCodeController::class, 'create'])->name('qr.create');
 
+// Public tracking redirect
+Route::get('/r/{shortCode}', [QrCodeController::class, 'track'])->name('qr.track');
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

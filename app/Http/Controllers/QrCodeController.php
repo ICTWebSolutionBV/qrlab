@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\QrCode;
+use App\Models\QrCodeScan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,17 +11,18 @@ class QrCodeController extends Controller
 {
     public function create()
     {
-        return Inertia::render('QrCode/Create');
+        return Inertia::render('QrCode/Create', [
+            'appUrl' => config('app.url'),
+        ]);
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $type = $request->input('type', 'wifi');
+
+        $rules = [
+            'type' => ['required', 'in:wifi,url'],
             'name' => ['required', 'string', 'max:255'],
-            'ssid' => ['required', 'string', 'max:255'],
-            'password' => ['nullable', 'string', 'max:255'],
-            'encryption' => ['required', 'in:WPA,WPA2,WPA3,WEP,nopass'],
-            'hidden_network' => ['boolean'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
             'dot_style' => ['string', 'max:30'],
@@ -30,7 +32,7 @@ class QrCodeController extends Controller
             'size' => ['integer', 'min:100', 'max:2000'],
             'margin' => ['integer', 'min:0', 'max:100'],
             'header_text' => ['nullable', 'string', 'max:255'],
-            'header_font_size' => ['string', 'in:12,14,16,18,20,24,28,32'],
+            'header_font_size' => ['nullable', 'string', 'max:5'],
             'header_color' => ['string', 'max:7'],
             'header_alignment' => ['string', 'in:left,center,right'],
             'header_margin' => ['integer', 'min:0', 'max:40'],
@@ -44,7 +46,7 @@ class QrCodeController extends Controller
             'header_margin_bottom' => ['integer', 'min:0', 'max:80'],
             'header_margin_left' => ['integer', 'min:0', 'max:80'],
             'footer_text' => ['nullable', 'string', 'max:255'],
-            'footer_font_size' => ['string', 'in:12,14,16,18,20,24,28,32'],
+            'footer_font_size' => ['nullable', 'string', 'max:5'],
             'footer_color' => ['string', 'max:7'],
             'footer_alignment' => ['string', 'in:left,center,right'],
             'footer_margin' => ['integer', 'min:0', 'max:40'],
@@ -57,19 +59,44 @@ class QrCodeController extends Controller
             'footer_margin_right' => ['integer', 'min:0', 'max:80'],
             'footer_margin_bottom' => ['integer', 'min:0', 'max:80'],
             'footer_margin_left' => ['integer', 'min:0', 'max:80'],
-            'show_wifi_details' => ['boolean'],
-            'wifi_details_font_size' => ['nullable', 'string', 'in:12,14,16,18,20,24,28,32'],
-            'wifi_details_color' => ['nullable', 'string', 'max:7'],
-            'wifi_details_alignment' => ['nullable', 'string', 'in:left,center,right'],
-            'wifi_details_password_font' => ['nullable', 'string', 'max:50'],
-            'wifi_details_show_password' => ['boolean'],
-            'wifi_details_margin_top' => ['integer', 'min:0', 'max:60'],
             'logo_size' => ['nullable', 'integer', 'min:10', 'max:40'],
-            'frame_style' => ['nullable', 'string', 'max:30'],
-            'frame_color' => ['nullable', 'string', 'max:7'],
-            'frame_text' => ['nullable', 'string', 'max:100'],
             'tracking_enabled' => ['boolean'],
-        ]);
+        ];
+
+        if ($type === 'wifi') {
+            $rules = array_merge($rules, [
+                'ssid' => ['required', 'string', 'max:255'],
+                'password' => ['nullable', 'string', 'max:255'],
+                'encryption' => ['required', 'in:WPA,WPA2,WPA3,WEP,nopass'],
+                'hidden_network' => ['boolean'],
+                'show_wifi_details' => ['boolean'],
+                'wifi_details_font_family' => ['nullable', 'string', 'max:50'],
+                'wifi_details_font_size' => ['nullable', 'string', 'max:5'],
+                'wifi_details_color' => ['nullable', 'string', 'max:7'],
+                'wifi_details_alignment' => ['nullable', 'string', 'in:left,center,right'],
+                'wifi_details_bold' => ['boolean'],
+                'wifi_details_italic' => ['boolean'],
+                'wifi_details_underline' => ['boolean'],
+                'wifi_details_password_font' => ['nullable', 'string', 'max:50'],
+                'wifi_details_show_password' => ['boolean'],
+                'wifi_details_margin_top' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin_custom' => ['boolean'],
+                'wifi_details_margin_right' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin_bottom' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin_left' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_password_separate_style' => ['boolean'],
+                'wifi_details_password_font_size' => ['nullable', 'string', 'max:5'],
+                'wifi_details_password_bold' => ['boolean'],
+                'wifi_details_password_italic' => ['boolean'],
+                'wifi_details_password_underline' => ['boolean'],
+                'wifi_details_password_color' => ['nullable', 'string', 'max:7'],
+            ]);
+        } else {
+            $rules['url'] = ['required', 'url', 'max:2048'];
+        }
+
+        $data = $request->validate($rules);
 
         $data['user_id'] = $request->user()->id;
 
@@ -94,6 +121,7 @@ class QrCodeController extends Controller
 
         return Inertia::render('QrCode/Edit', [
             'qrCode' => $qrCode,
+            'appUrl' => config('app.url'),
         ]);
     }
 
@@ -103,12 +131,11 @@ class QrCodeController extends Controller
             abort(403);
         }
 
-        $data = $request->validate([
+        $type = $request->input('type', $qrCode->type ?? 'wifi');
+
+        $rules = [
+            'type' => ['required', 'in:wifi,url'],
             'name' => ['required', 'string', 'max:255'],
-            'ssid' => ['required', 'string', 'max:255'],
-            'password' => ['nullable', 'string', 'max:255'],
-            'encryption' => ['required', 'in:WPA,WPA2,WPA3,WEP,nopass'],
-            'hidden_network' => ['boolean'],
             'foreground_color' => ['string', 'max:7'],
             'background_color' => ['string', 'max:7'],
             'dot_style' => ['string', 'max:30'],
@@ -118,7 +145,7 @@ class QrCodeController extends Controller
             'size' => ['integer', 'min:100', 'max:2000'],
             'margin' => ['integer', 'min:0', 'max:100'],
             'header_text' => ['nullable', 'string', 'max:255'],
-            'header_font_size' => ['string', 'in:12,14,16,18,20,24,28,32'],
+            'header_font_size' => ['nullable', 'string', 'max:5'],
             'header_color' => ['string', 'max:7'],
             'header_alignment' => ['string', 'in:left,center,right'],
             'header_margin' => ['integer', 'min:0', 'max:40'],
@@ -132,7 +159,7 @@ class QrCodeController extends Controller
             'header_margin_bottom' => ['integer', 'min:0', 'max:80'],
             'header_margin_left' => ['integer', 'min:0', 'max:80'],
             'footer_text' => ['nullable', 'string', 'max:255'],
-            'footer_font_size' => ['string', 'in:12,14,16,18,20,24,28,32'],
+            'footer_font_size' => ['nullable', 'string', 'max:5'],
             'footer_color' => ['string', 'max:7'],
             'footer_alignment' => ['string', 'in:left,center,right'],
             'footer_margin' => ['integer', 'min:0', 'max:40'],
@@ -145,19 +172,44 @@ class QrCodeController extends Controller
             'footer_margin_right' => ['integer', 'min:0', 'max:80'],
             'footer_margin_bottom' => ['integer', 'min:0', 'max:80'],
             'footer_margin_left' => ['integer', 'min:0', 'max:80'],
-            'show_wifi_details' => ['boolean'],
-            'wifi_details_font_size' => ['nullable', 'string', 'in:12,14,16,18,20,24,28,32'],
-            'wifi_details_color' => ['nullable', 'string', 'max:7'],
-            'wifi_details_alignment' => ['nullable', 'string', 'in:left,center,right'],
-            'wifi_details_password_font' => ['nullable', 'string', 'max:50'],
-            'wifi_details_show_password' => ['boolean'],
-            'wifi_details_margin_top' => ['integer', 'min:0', 'max:60'],
             'logo_size' => ['nullable', 'integer', 'min:10', 'max:40'],
-            'frame_style' => ['nullable', 'string', 'max:30'],
-            'frame_color' => ['nullable', 'string', 'max:7'],
-            'frame_text' => ['nullable', 'string', 'max:100'],
             'tracking_enabled' => ['boolean'],
-        ]);
+        ];
+
+        if ($type === 'wifi') {
+            $rules = array_merge($rules, [
+                'ssid' => ['required', 'string', 'max:255'],
+                'password' => ['nullable', 'string', 'max:255'],
+                'encryption' => ['required', 'in:WPA,WPA2,WPA3,WEP,nopass'],
+                'hidden_network' => ['boolean'],
+                'show_wifi_details' => ['boolean'],
+                'wifi_details_font_family' => ['nullable', 'string', 'max:50'],
+                'wifi_details_font_size' => ['nullable', 'string', 'max:5'],
+                'wifi_details_color' => ['nullable', 'string', 'max:7'],
+                'wifi_details_alignment' => ['nullable', 'string', 'in:left,center,right'],
+                'wifi_details_bold' => ['boolean'],
+                'wifi_details_italic' => ['boolean'],
+                'wifi_details_underline' => ['boolean'],
+                'wifi_details_password_font' => ['nullable', 'string', 'max:50'],
+                'wifi_details_show_password' => ['boolean'],
+                'wifi_details_margin_top' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin_custom' => ['boolean'],
+                'wifi_details_margin_right' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin_bottom' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_margin_left' => ['integer', 'min:0', 'max:60'],
+                'wifi_details_password_separate_style' => ['boolean'],
+                'wifi_details_password_font_size' => ['nullable', 'string', 'max:5'],
+                'wifi_details_password_bold' => ['boolean'],
+                'wifi_details_password_italic' => ['boolean'],
+                'wifi_details_password_underline' => ['boolean'],
+                'wifi_details_password_color' => ['nullable', 'string', 'max:7'],
+            ]);
+        } else {
+            $rules['url'] = ['required', 'url', 'max:2048'];
+        }
+
+        $data = $request->validate($rules);
 
         if ($request->hasFile('logo')) {
             $data['logo_path'] = $request->file('logo')->store('qr-logos/' . $request->user()->id, 'private');
@@ -181,6 +233,25 @@ class QrCodeController extends Controller
         $qrCode->delete();
 
         return redirect()->route('dashboard')->with('success', 'QR code deleted.');
+    }
+
+    public function track(string $shortCode)
+    {
+        $qrCode = QrCode::where('short_code', $shortCode)->firstOrFail();
+
+        if ($qrCode->type !== 'url' || !$qrCode->url) {
+            abort(404);
+        }
+
+        QrCodeScan::create([
+            'qr_code_id' => $qrCode->id,
+            'scanned_at' => now(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'referer' => request()->header('referer'),
+        ]);
+
+        return redirect($qrCode->url);
     }
 
     private function generateShortCode(): string

@@ -14,7 +14,9 @@ class QrCode extends Model
 
     protected $fillable = [
         'user_id',
+        'type',
         'name',
+        'url',
         'ssid',
         'password',
         'encryption',
@@ -56,12 +58,27 @@ class QrCode extends Model
         'footer_margin_bottom',
         'footer_margin_left',
         'show_wifi_details',
+        'wifi_details_font_family',
         'wifi_details_font_size',
         'wifi_details_color',
         'wifi_details_alignment',
+        'wifi_details_bold',
+        'wifi_details_italic',
+        'wifi_details_underline',
         'wifi_details_password_font',
         'wifi_details_show_password',
         'wifi_details_margin_top',
+        'wifi_details_margin',
+        'wifi_details_margin_custom',
+        'wifi_details_margin_right',
+        'wifi_details_margin_bottom',
+        'wifi_details_margin_left',
+        'wifi_details_password_separate_style',
+        'wifi_details_password_font_size',
+        'wifi_details_password_bold',
+        'wifi_details_password_italic',
+        'wifi_details_password_underline',
+        'wifi_details_password_color',
         'logo_path',
         'logo_size',
         'frame_style',
@@ -94,8 +111,20 @@ class QrCode extends Model
             'footer_margin_bottom' => 'integer',
             'footer_margin_left' => 'integer',
             'show_wifi_details' => 'boolean',
+            'wifi_details_bold' => 'boolean',
+            'wifi_details_italic' => 'boolean',
+            'wifi_details_underline' => 'boolean',
             'wifi_details_show_password' => 'boolean',
             'wifi_details_margin_top' => 'integer',
+            'wifi_details_margin' => 'integer',
+            'wifi_details_margin_custom' => 'boolean',
+            'wifi_details_margin_right' => 'integer',
+            'wifi_details_margin_bottom' => 'integer',
+            'wifi_details_margin_left' => 'integer',
+            'wifi_details_password_separate_style' => 'boolean',
+            'wifi_details_password_bold' => 'boolean',
+            'wifi_details_password_italic' => 'boolean',
+            'wifi_details_password_underline' => 'boolean',
             'size' => 'integer',
             'margin' => 'integer',
             'logo_size' => 'integer',
@@ -110,6 +139,11 @@ class QrCode extends Model
     public function scans(): HasMany
     {
         return $this->hasMany(QrCodeScan::class);
+    }
+
+    public function toUrlString(): string
+    {
+        return $this->url ?? '';
     }
 
     public function toWifiString(): string

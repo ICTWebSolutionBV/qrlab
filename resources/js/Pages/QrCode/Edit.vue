@@ -8,6 +8,7 @@ import { getFontStack, monospace, sansSerif } from '@/config/fonts.js'
 
 const props = defineProps({
     qrCode: Object,
+    appUrl: String,
 })
 
 const qrPreviewRef = ref(null)
@@ -50,7 +51,9 @@ function toggleWifiCustomMargin() {
 }
 
 const form = useForm({
+    type: props.qrCode.type || 'wifi',
     name: props.qrCode.name,
+    url: props.qrCode.url || '',
     ssid: props.qrCode.ssid,
     password: props.qrCode.password || '',
     encryption: props.qrCode.encryption,
@@ -118,7 +121,13 @@ const form = useForm({
     tracking_enabled: props.qrCode.tracking_enabled,
 })
 
-const wifiString = computed(() => {
+const qrContent = computed(() => {
+    if (form.type === 'url') {
+        if (form.tracking_enabled && props.qrCode.short_code) {
+            return `${props.appUrl}/r/${props.qrCode.short_code}`
+        }
+        return form.url || 'https://example.com'
+    }
     const enc = ['WPA', 'WPA2', 'WPA3'].includes(form.encryption) ? 'WPA' :
         form.encryption === 'WEP' ? 'WEP' : 'nopass'
     const ssid = (form.ssid || 'MyNetwork').replace(/([\\;,":])/, '\\$1')
@@ -126,6 +135,10 @@ const wifiString = computed(() => {
     const hidden = form.hidden_network ? 'true' : 'false'
     return `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`
 })
+
+const trackingUrl = computed(() =>
+    props.qrCode.short_code ? `${props.appUrl}/r/${props.qrCode.short_code}` : null
+)
 
 // TextLabelEditor bindings
 const headerLabel = computed(() => ({
@@ -299,45 +312,70 @@ const downloadQr = async (ext) => {
         <div class="flex flex-col lg:flex-row gap-6">
             <!-- Left: Form -->
             <div class="flex-1 space-y-6">
-                <!-- WiFi Details -->
+                <!-- Details card -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">WiFi Details</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ form.type === 'url' ? 'URL Details' : 'WiFi Details' }}</h2>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Code Name</label>
                             <input v-model="form.name" type="text"
                                 class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Network Name (SSID)</label>
-                            <input v-model="form.ssid" type="text"
-                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-                            <input v-model="form.password" type="text"
-                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Encryption</label>
-                                <select v-model="form.encryption"
-                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none">
-                                    <option value="WPA2">WPA2</option>
-                                    <option value="WPA">WPA</option>
-                                    <option value="WPA3">WPA3</option>
-                                    <option value="WEP">WEP</option>
-                                    <option value="nopass">None</option>
-                                </select>
+                        <!-- URL fields -->
+                        <template v-if="form.type === 'url'">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
+                                <input v-model="form.url" type="url"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                <p v-if="form.errors.url" class="text-red-500 text-xs mt-1">{{ form.errors.url }}</p>
                             </div>
-                            <div class="flex items-center justify-between pt-6">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Hidden network</span>
-                                <button type="button" @click="form.hidden_network = !form.hidden_network"
-                                    :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.hidden_network ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
-                                    <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.hidden_network ? 'translate-x-4' : 'translate-x-0']" />
+                            <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Track scans</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">QR redirects via a tracking link</p>
+                                </div>
+                                <button type="button" @click="form.tracking_enabled = !form.tracking_enabled"
+                                    :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.tracking_enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                    <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled ? 'translate-x-5' : 'translate-x-0']" />
                                 </button>
                             </div>
-                        </div>
+                            <div v-if="trackingUrl" class="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 font-mono break-all">
+                                {{ trackingUrl }}
+                            </div>
+                        </template>
+                        <!-- WiFi fields -->
+                        <template v-else>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Network Name (SSID)</label>
+                                <input v-model="form.ssid" type="text"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                <input v-model="form.password" type="text"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Encryption</label>
+                                    <select v-model="form.encryption"
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                                        <option value="WPA2">WPA2</option>
+                                        <option value="WPA">WPA</option>
+                                        <option value="WPA3">WPA3</option>
+                                        <option value="WEP">WEP</option>
+                                        <option value="nopass">None</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center justify-between pt-6">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Hidden network</span>
+                                    <button type="button" @click="form.hidden_network = !form.hidden_network"
+                                        :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.hidden_network ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                        <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.hidden_network ? 'translate-x-4' : 'translate-x-0']" />
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -382,7 +420,7 @@ const downloadQr = async (ext) => {
                 </div>
 
                 <!-- WiFi Info Display -->
-                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <div v-if="form.type === 'wifi'" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">WiFi Info Display</h2>
@@ -701,7 +739,7 @@ const downloadQr = async (ext) => {
                         <p v-if="form.header_text" :style="headerStyle">{{ form.header_text }}</p>
 
                         <div class="flex justify-center">
-                            <QrPreview ref="qrPreviewRef" :data="wifiString" :width="280" :height="280" :margin="form.margin"
+                            <QrPreview ref="qrPreviewRef" :data="qrContent" :width="280" :height="280" :margin="form.margin"
                                 :dotsColor="form.foreground_color" :backgroundColor="form.background_color"
                                 :dotStyle="form.dot_style" :cornerSquareStyle="form.corner_square_style"
                                 :cornerDotStyle="form.corner_dot_style" :errorCorrectionLevel="form.error_correction"
@@ -712,7 +750,7 @@ const downloadQr = async (ext) => {
                         <p v-if="form.footer_text" :style="footerStyle">{{ form.footer_text }}</p>
 
                         <!-- WiFi info block -->
-                        <div v-if="form.show_wifi_details" :style="wifiDetailsBaseStyle" class="space-y-1">
+                        <div v-if="form.type === 'wifi' && form.show_wifi_details" :style="wifiDetailsBaseStyle" class="space-y-1">
                             <p>
                                 <span class="font-medium">WiFi Name: </span>
                                 <span>{{ form.ssid }}</span>
