@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import QRCodeStyling from 'qr-code-styling'
 
 const props = defineProps({
@@ -69,8 +69,60 @@ watch(() => [
     }
 }, { deep: true })
 
+const downloadRounded = async (name, extension) => {
+    if (!qrCode) return
+
+    if (extension === 'svg') {
+        // SVG: download as-is (rounded corners not applicable to SVG the same way)
+        qrCode.download({ name, extension })
+        return
+    }
+
+    const blob = await qrCode.getRawData('png')
+    const img = new Image()
+    img.src = URL.createObjectURL(blob)
+    await new Promise(r => img.onload = r)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width
+    canvas.height = img.height
+    const ctx = canvas.getContext('2d')
+    const radius = Math.min(img.width, img.height) * 0.04
+
+    ctx.beginPath()
+    ctx.moveTo(radius, 0)
+    ctx.lineTo(img.width - radius, 0)
+    ctx.quadraticCurveTo(img.width, 0, img.width, radius)
+    ctx.lineTo(img.width, img.height - radius)
+    ctx.quadraticCurveTo(img.width, img.height, img.width - radius, img.height)
+    ctx.lineTo(radius, img.height)
+    ctx.quadraticCurveTo(0, img.height, 0, img.height - radius)
+    ctx.lineTo(0, radius)
+    ctx.quadraticCurveTo(0, 0, radius, 0)
+    ctx.closePath()
+    ctx.clip()
+
+    ctx.drawImage(img, 0, 0)
+    URL.revokeObjectURL(img.src)
+
+    const mimeType = extension === 'jpeg' ? 'image/jpeg' : 'image/png'
+    canvas.toBlob((b) => {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(b)
+        a.download = `${name}.${extension}`
+        a.click()
+        URL.revokeObjectURL(a.href)
+    }, mimeType, 0.95)
+}
+
 defineExpose({
-    download: (name, extension) => qrCode?.download({ name, extension }),
+    download: (name, extension, rounded = true) => {
+        if (rounded) {
+            downloadRounded(name, extension)
+        } else {
+            qrCode?.download({ name, extension })
+        }
+    },
     getRawData: (extension) => qrCode?.getRawData(extension),
 })
 </script>

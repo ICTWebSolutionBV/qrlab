@@ -23,6 +23,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/invite/{token}', [InviteController::class, 'accept'])->name('invite.accept');
 });
 
+// Public QR code generator
+Route::get('/', [QrCodeController::class, 'create'])->name('qr.create');
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
@@ -33,10 +36,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/passkeys/{passkey}', [PasskeyController::class, 'destroy'])->name('passkeys.destroy');
 
     // Dashboard
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // QR Codes
-    Route::get('/qr/create', [QrCodeController::class, 'create'])->name('qr.create');
+    // QR Codes (save, edit, delete require auth)
     Route::post('/qr', [QrCodeController::class, 'store'])->name('qr.store');
     Route::get('/qr/{qrCode}/edit', [QrCodeController::class, 'edit'])->name('qr.edit');
     Route::put('/qr/{qrCode}', [QrCodeController::class, 'update'])->name('qr.update');

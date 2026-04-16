@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import QrPreview from '@/Components/QrPreview.vue'
+
+const page = usePage()
+const user = computed(() => page.props.auth?.user)
 
 const qrPreviewRef = ref(null)
 const logoPreview = ref(null)
@@ -22,7 +25,15 @@ const form = useForm({
     size: 300,
     margin: 10,
     header_text: '',
+    header_font_size: '16',
+    header_color: '#000000',
+    header_alignment: 'center',
+    header_margin: 8,
     footer_text: '',
+    footer_font_size: '14',
+    footer_color: '#000000',
+    footer_alignment: 'center',
+    footer_margin: 8,
     logo: null,
     logo_size: 30,
     tracking_enabled: false,
@@ -71,15 +82,18 @@ const submit = () => {
     })
 }
 
+const roundedExport = ref(true)
+
 const downloadQr = async (ext) => {
-    qrPreviewRef.value?.download(form.name || 'qrcode', ext)
+    qrPreviewRef.value?.download(form.name || 'qrcode', ext, roundedExport.value)
 }
 </script>
 
 <template>
-    <Head title="Create QR Code" />
+    <Head title="WiFi QR Code Generator" />
     <AppLayout>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Create WiFi QR Code</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">WiFi QR Code Generator</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Generate a QR code for your WiFi network. Scan it with any phone to connect instantly.</p>
 
         <div class="flex flex-col lg:flex-row gap-6">
             <!-- Left: Form -->
@@ -88,12 +102,6 @@ const downloadQr = async (ext) => {
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">WiFi Details</h2>
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Code Name</label>
-                            <input v-model="form.name" type="text" placeholder="e.g. Office WiFi"
-                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
-                            <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
-                        </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Network Name (SSID)</label>
                             <input v-model="form.ssid" type="text" placeholder="SSID"
@@ -128,16 +136,101 @@ const downloadQr = async (ext) => {
                 <!-- Text Labels -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Text Labels (Optional)</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Header Text</label>
-                            <input v-model="form.header_text" type="text" placeholder="Text above QR code"
-                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                    <div class="space-y-5">
+                        <!-- Header -->
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Header Text</label>
+                                <input v-model="form.header_text" type="text" placeholder="Text above QR code"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div v-if="form.header_text" class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Size</label>
+                                    <select v-model="form.header_font_size"
+                                        class="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs">
+                                        <option value="12">12px</option>
+                                        <option value="14">14px</option>
+                                        <option value="16">16px</option>
+                                        <option value="18">18px</option>
+                                        <option value="20">20px</option>
+                                        <option value="24">24px</option>
+                                        <option value="28">28px</option>
+                                        <option value="32">32px</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Color</label>
+                                    <div class="flex items-center gap-1">
+                                        <input v-model="form.header_color" type="color" class="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 cursor-pointer" />
+                                        <input v-model="form.header_color" type="text" class="flex-1 min-w-0 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Align</label>
+                                    <div class="flex border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                                        <button v-for="a in ['left', 'center', 'right']" :key="a"
+                                            @click="form.header_alignment = a"
+                                            :class="[form.header_alignment === a ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400']"
+                                            class="flex-1 py-1.5 text-xs font-medium transition-colors">
+                                            {{ a.charAt(0).toUpperCase() }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="form.header_text">
+                                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Margin ({{ form.header_margin }}px)</label>
+                                <input v-model.number="form.header_margin" type="range" min="0" max="40" class="w-full" />
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Footer Text</label>
-                            <input v-model="form.footer_text" type="text" placeholder="Text below QR code"
-                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+
+                        <div v-if="form.header_text || form.footer_text" class="border-t border-gray-200 dark:border-gray-700"></div>
+
+                        <!-- Footer -->
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Footer Text</label>
+                                <input v-model="form.footer_text" type="text" placeholder="Text below QR code"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            </div>
+                            <div v-if="form.footer_text" class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Size</label>
+                                    <select v-model="form.footer_font_size"
+                                        class="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs">
+                                        <option value="12">12px</option>
+                                        <option value="14">14px</option>
+                                        <option value="16">16px</option>
+                                        <option value="18">18px</option>
+                                        <option value="20">20px</option>
+                                        <option value="24">24px</option>
+                                        <option value="28">28px</option>
+                                        <option value="32">32px</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Color</label>
+                                    <div class="flex items-center gap-1">
+                                        <input v-model="form.footer_color" type="color" class="w-7 h-7 rounded border border-gray-300 dark:border-gray-700 cursor-pointer" />
+                                        <input v-model="form.footer_color" type="text" class="flex-1 min-w-0 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-xs" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Align</label>
+                                    <div class="flex border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                                        <button v-for="a in ['left', 'center', 'right']" :key="a"
+                                            @click="form.footer_alignment = a"
+                                            :class="[form.footer_alignment === a ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400']"
+                                            class="flex-1 py-1.5 text-xs font-medium transition-colors">
+                                            {{ a.charAt(0).toUpperCase() }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="form.footer_text">
+                                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Margin ({{ form.footer_margin }}px)</label>
+                                <input v-model.number="form.footer_margin" type="range" min="0" max="40" class="w-full" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,7 +323,9 @@ const downloadQr = async (ext) => {
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">Preview</h2>
 
                         <!-- Header text -->
-                        <p v-if="form.header_text" class="text-center text-sm font-medium text-gray-900 dark:text-white mb-2">{{ form.header_text }}</p>
+                        <p v-if="form.header_text"
+                            :style="{ fontSize: form.header_font_size + 'px', color: form.header_color, textAlign: form.header_alignment, marginBottom: form.header_margin + 'px' }"
+                            class="font-medium">{{ form.header_text }}</p>
 
                         <div class="flex justify-center">
                             <QrPreview
@@ -251,12 +346,20 @@ const downloadQr = async (ext) => {
                         </div>
 
                         <!-- Footer text -->
-                        <p v-if="form.footer_text" class="text-center text-sm font-medium text-gray-900 dark:text-white mt-2">{{ form.footer_text }}</p>
+                        <p v-if="form.footer_text"
+                            :style="{ fontSize: form.footer_font_size + 'px', color: form.footer_color, textAlign: form.footer_alignment, marginTop: form.footer_margin + 'px' }"
+                            class="font-medium">{{ form.footer_text }}</p>
                     </div>
 
                     <!-- Quick download -->
                     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
-                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Quick Download</p>
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quick Download</p>
+                            <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
+                                <input v-model="roundedExport" type="checkbox" class="rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5" />
+                                Rounded
+                            </label>
+                        </div>
                         <div class="grid grid-cols-3 gap-2">
                             <button @click="downloadQr('png')" class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">PNG</button>
                             <button @click="downloadQr('jpeg')" class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">JPG</button>
@@ -264,11 +367,33 @@ const downloadQr = async (ext) => {
                         </div>
                     </div>
 
-                    <!-- Save -->
-                    <button @click="submit" :disabled="form.processing || !form.name || !form.ssid"
-                        class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">
-                        {{ form.processing ? 'Saving...' : 'Save QR Code' }}
-                    </button>
+                    <!-- Save (authenticated) -->
+                    <template v-if="user">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Code Name</label>
+                            <input v-model="form.name" type="text" placeholder="e.g. Office WiFi"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                            <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
+                        </div>
+                        <button @click="submit" :disabled="form.processing || !form.name || !form.ssid"
+                            class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">
+                            {{ form.processing ? 'Saving...' : 'Save QR Code' }}
+                        </button>
+                    </template>
+
+                    <!-- Login prompt (guest) -->
+                    <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                        <div class="text-center">
+                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Want to save your QR codes?</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Sign in to save, edit, and manage your QR codes. Contact your administrator to request an account.</p>
+                            <Link :href="route('login')"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                                Sign in
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

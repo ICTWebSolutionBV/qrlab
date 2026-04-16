@@ -8,8 +8,11 @@ const showFlash = ref(false)
 const flashMessage = ref({ type: '', text: '' })
 
 const auth = computed(() => page.props.auth)
+const user = computed(() => auth.value?.user)
+const isAdmin = computed(() => user.value?.role === 'admin')
+const isGuest = computed(() => !user.value)
+
 const flash = computed(() => page.props.flash)
-const isAdmin = computed(() => auth.value?.user?.role === 'admin')
 
 watch(() => [flash.value?.success, flash.value?.error], ([success, error]) => {
     if (success || error) {
@@ -21,7 +24,7 @@ watch(() => [flash.value?.success, flash.value?.error], ([success, error]) => {
 
 const isActive = (routeName) => {
     const current = page.url
-    if (routeName === 'dashboard') return current === '/'
+    if (routeName === 'dashboard') return current === '/dashboard'
     return current.startsWith('/' + routeName.split('.')[0])
 }
 
@@ -29,14 +32,15 @@ const logout = () => router.post(route('logout'))
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
         <!-- Mobile sidebar overlay -->
-        <div v-if="showSidebar" class="fixed inset-0 z-40 lg:hidden" @click="showSidebar = false">
+        <div v-if="showSidebar && !isGuest" class="fixed inset-0 z-40 lg:hidden" @click="showSidebar = false">
             <div class="fixed inset-0 bg-black/50"></div>
         </div>
 
-        <!-- Sidebar -->
-        <aside :class="[showSidebar ? 'translate-x-0' : 'translate-x-full lg:translate-x-0']"
+        <!-- Sidebar (authenticated only) -->
+        <aside v-if="!isGuest"
+            :class="[showSidebar ? 'translate-x-0' : 'translate-x-full lg:translate-x-0']"
             class="fixed inset-y-0 right-0 lg:right-auto lg:left-0 z-50 w-64 bg-white dark:bg-gray-900 border-l lg:border-l-0 lg:border-r border-gray-200 dark:border-gray-800 transition-transform duration-200 ease-in-out lg:z-0 flex flex-col">
             <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-800">
                 <Link :href="route('dashboard')" class="flex items-center gap-2.5 min-w-0" @click="showSidebar = false">
@@ -86,11 +90,11 @@ const logout = () => router.post(route('logout'))
                 <Link :href="route('profile.edit')"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <div class="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-700 dark:text-primary-400 text-xs font-bold">
-                        {{ auth?.user?.name?.charAt(0)?.toUpperCase() }}
+                        {{ user?.name?.charAt(0)?.toUpperCase() }}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="truncate text-gray-900 dark:text-white">{{ auth?.user?.name }}</div>
-                        <div class="truncate text-xs text-gray-400">{{ auth?.user?.email }}</div>
+                        <div class="truncate text-gray-900 dark:text-white">{{ user?.name }}</div>
+                        <div class="truncate text-xs text-gray-400">{{ user?.email }}</div>
                     </div>
                 </Link>
                 <button @click="logout" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full">
@@ -100,9 +104,27 @@ const logout = () => router.post(route('logout'))
             </div>
         </aside>
 
+        <!-- Guest header -->
+        <header v-if="isGuest" class="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+                <Link href="/" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    </div>
+                    <span class="font-bold text-gray-900 dark:text-white text-lg">QR Lab</span>
+                </Link>
+                <Link :href="route('login')"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    Sign in
+                </Link>
+            </div>
+        </header>
+
         <!-- Main content -->
-        <div class="lg:pl-64">
-            <header class="sticky top-0 z-30 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+        <div :class="[isGuest ? '' : 'lg:pl-64']" class="flex-1 flex flex-col">
+            <!-- Auth header (mobile hamburger) -->
+            <header v-if="!isGuest" class="sticky top-0 z-30 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
                 <div class="flex items-center justify-end h-full px-4 sm:px-6">
                     <button @click="showSidebar = !showSidebar" class="lg:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -110,9 +132,16 @@ const logout = () => router.post(route('logout'))
                 </div>
             </header>
 
-            <main class="p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
+            <main :class="[isGuest ? 'max-w-7xl mx-auto w-full' : '']" class="p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8 flex-1">
                 <slot />
             </main>
+
+            <!-- Footer -->
+            <footer class="border-t border-gray-200 dark:border-gray-800 py-4 px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-xs text-gray-400 dark:text-gray-500">
+                    &copy; {{ new Date().getFullYear() }} ICTWebSolution B.V. All rights reserved.
+                </p>
+            </footer>
         </div>
 
         <!-- Flash toast -->
@@ -129,8 +158,8 @@ const logout = () => router.post(route('logout'))
             </div>
         </Transition>
 
-        <!-- Mobile bottom nav -->
-        <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 lg:hidden">
+        <!-- Mobile bottom nav (authenticated only) -->
+        <nav v-if="!isGuest" class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 lg:hidden">
             <div class="flex justify-around py-2">
                 <Link :href="route('dashboard')"
                     :class="[isActive('dashboard') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500']"
