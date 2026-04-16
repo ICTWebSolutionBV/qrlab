@@ -4,7 +4,7 @@ import { Head, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import QrPreview from '@/Components/QrPreview.vue'
 import TextLabelEditor from '@/Components/TextLabelEditor.vue'
-import { getFontStack, monospace } from '@/config/fonts.js'
+import { getFontStack, monospace, sansSerif } from '@/config/fonts.js'
 
 const props = defineProps({
     qrCode: Object,
@@ -12,6 +12,42 @@ const props = defineProps({
 
 const qrPreviewRef = ref(null)
 const logoPreview = ref(null)
+const showTextLabels = ref(false)
+const showDesign = ref(false)
+const wifiCustomSize = ref(false)
+const wifiIsCustomSize = computed(() => wifiCustomSize.value || !['12','14','16','18','20','24'].includes(String(form.wifi_details_font_size)))
+
+function onWifiSizeChange(val) {
+    if (val === 'custom') {
+        wifiCustomSize.value = true
+    } else {
+        wifiCustomSize.value = false
+        form.wifi_details_font_size = val
+    }
+}
+
+const wifiPasswordCustomSize = ref(false)
+const wifiPasswordIsCustomSize = computed(() => wifiPasswordCustomSize.value || !['12','14','16','18','20','24'].includes(String(form.wifi_details_password_font_size)))
+
+function onWifiPasswordSizeChange(val) {
+    if (val === 'custom') {
+        wifiPasswordCustomSize.value = true
+    } else {
+        wifiPasswordCustomSize.value = false
+        form.wifi_details_password_font_size = val
+    }
+}
+
+function toggleWifiCustomMargin() {
+    const next = !form.wifi_details_margin_custom
+    form.wifi_details_margin_custom = next
+    if (next) {
+        form.wifi_details_margin_top = form.wifi_details_margin
+        form.wifi_details_margin_right = 0
+        form.wifi_details_margin_bottom = form.wifi_details_margin
+        form.wifi_details_margin_left = 0
+    }
+}
 
 const form = useForm({
     name: props.qrCode.name,
@@ -56,12 +92,27 @@ const form = useForm({
     footer_margin_bottom: props.qrCode.footer_margin_bottom ?? 8,
     footer_margin_left: props.qrCode.footer_margin_left ?? 0,
     show_wifi_details: props.qrCode.show_wifi_details ?? false,
+    wifi_details_font_family: props.qrCode.wifi_details_font_family || 'Inter',
     wifi_details_font_size: props.qrCode.wifi_details_font_size || '14',
     wifi_details_color: props.qrCode.wifi_details_color || '#000000',
     wifi_details_alignment: props.qrCode.wifi_details_alignment || 'center',
-    wifi_details_password_font: props.qrCode.wifi_details_password_font || 'Roboto Mono',
+    wifi_details_bold: props.qrCode.wifi_details_bold ?? false,
+    wifi_details_italic: props.qrCode.wifi_details_italic ?? false,
+    wifi_details_underline: props.qrCode.wifi_details_underline ?? false,
+    wifi_details_password_font: props.qrCode.wifi_details_password_font || 'Consolas',
     wifi_details_show_password: props.qrCode.wifi_details_show_password ?? true,
+    wifi_details_margin: props.qrCode.wifi_details_margin ?? 8,
+    wifi_details_margin_custom: props.qrCode.wifi_details_margin_custom ?? false,
     wifi_details_margin_top: props.qrCode.wifi_details_margin_top ?? 8,
+    wifi_details_margin_right: props.qrCode.wifi_details_margin_right ?? 0,
+    wifi_details_margin_bottom: props.qrCode.wifi_details_margin_bottom ?? 8,
+    wifi_details_margin_left: props.qrCode.wifi_details_margin_left ?? 0,
+    wifi_details_password_separate_style: props.qrCode.wifi_details_password_separate_style ?? false,
+    wifi_details_password_font_size: props.qrCode.wifi_details_password_font_size || '14',
+    wifi_details_password_bold: props.qrCode.wifi_details_password_bold ?? false,
+    wifi_details_password_italic: props.qrCode.wifi_details_password_italic ?? false,
+    wifi_details_password_underline: props.qrCode.wifi_details_password_underline ?? false,
+    wifi_details_password_color: props.qrCode.wifi_details_password_color || '#000000',
     logo: null,
     logo_size: props.qrCode.logo_size || 30,
     tracking_enabled: props.qrCode.tracking_enabled,
@@ -175,14 +226,28 @@ const footerStyle = computed(() => ({
 }))
 
 const wifiDetailsBaseStyle = computed(() => ({
+    fontFamily: getFontStack(form.wifi_details_font_family),
     fontSize: form.wifi_details_font_size + 'px',
     color: form.wifi_details_color,
     textAlign: form.wifi_details_alignment,
-    marginTop: form.wifi_details_margin_top + 'px',
+    fontWeight: form.wifi_details_bold ? '700' : '400',
+    fontStyle: form.wifi_details_italic ? 'italic' : 'normal',
+    textDecoration: form.wifi_details_underline ? 'underline' : 'none',
+    ...(form.wifi_details_margin_custom
+        ? { margin: `${form.wifi_details_margin_top}px ${form.wifi_details_margin_right}px ${form.wifi_details_margin_bottom}px ${form.wifi_details_margin_left}px` }
+        : { marginTop: form.wifi_details_margin + 'px' }
+    ),
 }))
 
 const wifiPasswordStyle = computed(() => ({
     fontFamily: getFontStack(form.wifi_details_password_font),
+    ...(form.wifi_details_password_separate_style ? {
+        fontSize: form.wifi_details_password_font_size + 'px',
+        fontWeight: form.wifi_details_password_bold ? '700' : '400',
+        fontStyle: form.wifi_details_password_italic ? 'italic' : 'normal',
+        textDecoration: form.wifi_details_password_underline ? 'underline' : 'none',
+        color: form.wifi_details_password_color,
+    } : {}),
 }))
 
 const dotStyles = [
@@ -265,35 +330,55 @@ const downloadQr = async (ext) => {
                                     <option value="nopass">None</option>
                                 </select>
                             </div>
-                            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 pt-6">
-                                <input v-model="form.hidden_network" type="checkbox" class="rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500" />
-                                Hidden network
-                            </label>
+                            <div class="flex items-center justify-between pt-6">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Hidden network</span>
+                                <button type="button" @click="form.hidden_network = !form.hidden_network"
+                                    :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.hidden_network ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                    <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.hidden_network ? 'translate-x-4' : 'translate-x-0']" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Text Labels -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Text Labels</h2>
-                    <div class="space-y-6">
+                    <div class="flex items-center justify-between" :class="showTextLabels ? 'mb-4' : ''">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Header</p>
-                            <TextLabelEditor
-                                :model-value="headerLabel"
-                                @update:model-value="updateHeader"
-                                label="Header Text"
-                            />
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Text Labels</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Add header and footer text to your QR code</p>
                         </div>
-                        <div class="border-t border-gray-100 dark:border-gray-800 pt-4">
-                            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Footer</p>
-                            <TextLabelEditor
-                                :model-value="footerLabel"
-                                @update:model-value="updateFooter"
-                                label="Footer Text"
-                            />
-                        </div>
+                        <button
+                            type="button"
+                            @click="showTextLabels = !showTextLabels"
+                            :class="[
+                                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
+                                showTextLabels ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700'
+                            ]"
+                        >
+                            <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', showTextLabels ? 'translate-x-5' : 'translate-x-0']" />
+                        </button>
                     </div>
+                    <template v-if="showTextLabels">
+                        <div class="space-y-6">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Header</p>
+                                <TextLabelEditor
+                                    :model-value="headerLabel"
+                                    @update:model-value="updateHeader"
+                                    label="Header Text"
+                                />
+                            </div>
+                            <div class="border-t border-gray-100 dark:border-gray-800 pt-4">
+                                <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Footer</p>
+                                <TextLabelEditor
+                                    :model-value="footerLabel"
+                                    @update:model-value="updateFooter"
+                                    label="Footer Text"
+                                />
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- WiFi Info Display -->
@@ -321,83 +406,220 @@ const downloadQr = async (ext) => {
                     </div>
 
                     <template v-if="form.show_wifi_details">
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Font Size</label>
-                                    <select v-model="form.wifi_details_font_size"
-                                        class="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                        <option value="12">12px</option>
-                                        <option value="14">14px</option>
-                                        <option value="16">16px</option>
-                                        <option value="18">18px</option>
-                                        <option value="20">20px</option>
-                                        <option value="24">24px</option>
+                        <div class="space-y-2">
+                            <!-- Row 1: Font + Size + B/I/U + Color -->
+                            <div class="flex items-end gap-1.5">
+                                <div class="flex-1 min-w-0">
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Font</label>
+                                    <select v-model="form.wifi_details_font_family"
+                                        class="w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <option v-for="font in sansSerif" :key="font.value" :value="font.value" :style="{ fontFamily: font.stack }">{{ font.label }}</option>
                                     </select>
                                 </div>
-                                <div>
+                                <div class="shrink-0" :class="wifiIsCustomSize ? 'w-20' : 'w-14'">
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Size</label>
+                                    <select v-if="!wifiIsCustomSize"
+                                        :value="form.wifi_details_font_size"
+                                        @change="onWifiSizeChange($event.target.value)"
+                                        class="w-full px-1.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <option value="12">12</option>
+                                        <option value="14">14</option>
+                                        <option value="16">16</option>
+                                        <option value="18">18</option>
+                                        <option value="20">20</option>
+                                        <option value="24">24</option>
+                                        <option value="custom">px…</option>
+                                    </select>
+                                    <div v-else class="flex items-center gap-0.5">
+                                        <input type="number" v-model="form.wifi_details_font_size"
+                                            min="8" max="120" step="1"
+                                            class="w-12 px-1.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                        <span class="text-xs text-gray-400 select-none">px</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-0.5 shrink-0">
+                                    <button type="button" @click="form.wifi_details_bold = !form.wifi_details_bold"
+                                        :class="['w-7 h-7 rounded text-xs font-bold border transition-colors', form.wifi_details_bold ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-400']"
+                                        title="Bold">B</button>
+                                    <button type="button" @click="form.wifi_details_italic = !form.wifi_details_italic"
+                                        :class="['w-7 h-7 rounded text-xs italic border transition-colors', form.wifi_details_italic ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-400']"
+                                        title="Italic">I</button>
+                                    <button type="button" @click="form.wifi_details_underline = !form.wifi_details_underline"
+                                        :class="['w-7 h-7 rounded text-xs underline border transition-colors', form.wifi_details_underline ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-400']"
+                                        title="Underline">U</button>
+                                </div>
+                                <div class="shrink-0">
                                     <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Color</label>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1">
                                         <input type="color" v-model="form.wifi_details_color"
-                                            class="w-8 h-8 rounded cursor-pointer border border-gray-200 dark:border-gray-700 p-0.5 bg-white dark:bg-gray-800" />
+                                            class="w-7 h-7 rounded cursor-pointer border border-gray-200 dark:border-gray-700 p-0.5 bg-white dark:bg-gray-800 shrink-0" />
                                         <input type="text" v-model="form.wifi_details_color" maxlength="7"
-                                            class="w-24 px-2 py-1.5 text-sm font-mono border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                                            class="w-16 px-1.5 py-1.5 text-xs font-mono border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Alignment</label>
-                                    <div class="flex gap-1">
-                                        <button v-for="align in ['left', 'center', 'right']" :key="align"
-                                            type="button"
+                            <!-- Row 2: Align + Margin -->
+                            <div class="flex items-end gap-1.5">
+                                <div class="shrink-0">
+                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Align</label>
+                                    <div class="flex gap-0.5">
+                                        <button v-for="align in ['left', 'center', 'right']" :key="align" type="button"
                                             @click="form.wifi_details_alignment = align"
-                                            :class="[
-                                                'flex-1 py-1.5 rounded text-xs border capitalize transition-colors',
-                                                form.wifi_details_alignment === align
-                                                    ? 'bg-emerald-600 border-emerald-600 text-white'
-                                                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400'
-                                            ]">
+                                            :class="['w-7 h-7 rounded text-xs border transition-colors', form.wifi_details_alignment === align ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400']">
                                             <span v-if="align === 'left'">&#9664;</span>
                                             <span v-else-if="align === 'center'">&#9644;</span>
                                             <span v-else>&#9654;</span>
                                         </button>
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Margin Top <span class="text-gray-400">{{ form.wifi_details_margin_top }}px</span></label>
-                                    <input type="range" v-model.number="form.wifi_details_margin_top" min="0" max="60"
-                                        class="w-full accent-emerald-600" />
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Margin</label>
+                                        <button type="button" @click="toggleWifiCustomMargin"
+                                            :class="['text-xs px-1.5 py-0.5 rounded border transition-colors leading-none', form.wifi_details_margin_custom ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-emerald-400']">
+                                            Custom
+                                        </button>
+                                    </div>
+                                    <div v-if="!form.wifi_details_margin_custom" class="flex items-center gap-1.5">
+                                        <input type="range" v-model.number="form.wifi_details_margin" min="0" max="40" step="1" class="flex-1 h-1 accent-emerald-600" />
+                                        <span class="text-xs text-gray-400 w-7 text-right tabular-nums">{{ form.wifi_details_margin }}</span>
+                                    </div>
+                                    <div v-else class="grid grid-cols-4 gap-1">
+                                        <input v-for="side in [{ key: 'wifi_details_margin_top', label: 'T' }, { key: 'wifi_details_margin_right', label: 'R' }, { key: 'wifi_details_margin_bottom', label: 'B' }, { key: 'wifi_details_margin_left', label: 'L' }]"
+                                            :key="side.key" type="number" v-model.number="form[side.key]"
+                                            :title="side.label === 'T' ? 'Top' : side.label === 'R' ? 'Right' : side.label === 'B' ? 'Bottom' : 'Left'"
+                                            :placeholder="side.label"
+                                            min="0" max="80" step="1"
+                                            class="w-full px-0 py-1.5 text-xs text-center border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
+                            <!-- Row 3: Password section -->
+                            <!-- When NOT separate: Font + toggles -->
+                            <div v-if="!form.wifi_details_password_separate_style" class="flex items-end gap-1.5 pt-1">
+                                <div class="flex-1 min-w-0">
                                     <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Password Font</label>
                                     <select v-model="form.wifi_details_password_font"
-                                        class="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        class="w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                         <option v-for="font in monospace" :key="font.value" :value="font.value" :style="{ fontFamily: font.stack }">
                                             {{ font.label }}
                                         </option>
                                     </select>
                                 </div>
-                                <div class="flex items-end pb-1">
-                                    <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-                                        <input v-model="form.wifi_details_show_password" type="checkbox"
-                                            class="rounded border-gray-300 dark:border-gray-700 text-emerald-600 focus:ring-emerald-500" />
-                                        Show password
-                                    </label>
+                                <div class="flex flex-col gap-1.5 shrink-0 pb-0.5">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Show password</span>
+                                        <button type="button" @click="form.wifi_details_show_password = !form.wifi_details_show_password"
+                                            :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.wifi_details_show_password ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                            <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.wifi_details_show_password ? 'translate-x-4' : 'translate-x-0']" />
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Style separately</span>
+                                        <button type="button" @click="form.wifi_details_password_separate_style = !form.wifi_details_password_separate_style"
+                                            :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.wifi_details_password_separate_style ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                            <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.wifi_details_password_separate_style ? 'translate-x-4' : 'translate-x-0']" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                            <!-- When separate: Font + Size + B/I/U + Color in one row, toggles below -->
+                            <template v-else>
+                                <div class="flex items-end gap-1.5 pt-1">
+                                    <div class="flex-1 min-w-0">
+                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Password Font</label>
+                                        <select v-model="form.wifi_details_password_font"
+                                            class="w-full px-2 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                            <option v-for="font in monospace" :key="font.value" :value="font.value" :style="{ fontFamily: font.stack }">
+                                                {{ font.label }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="shrink-0" :class="wifiPasswordIsCustomSize ? 'w-20' : 'w-14'">
+                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Size</label>
+                                        <select v-if="!wifiPasswordIsCustomSize"
+                                            :value="form.wifi_details_password_font_size"
+                                            @change="onWifiPasswordSizeChange($event.target.value)"
+                                            class="w-full px-1.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                            <option value="12">12</option>
+                                            <option value="14">14</option>
+                                            <option value="16">16</option>
+                                            <option value="18">18</option>
+                                            <option value="20">20</option>
+                                            <option value="24">24</option>
+                                            <option value="custom">px…</option>
+                                        </select>
+                                        <div v-else class="flex items-center gap-0.5">
+                                            <input type="number" v-model="form.wifi_details_password_font_size"
+                                                min="8" max="120" step="1"
+                                                class="w-12 px-1.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                            <span class="text-xs text-gray-400 select-none">px</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-0.5 shrink-0">
+                                        <button type="button" @click="form.wifi_details_password_bold = !form.wifi_details_password_bold"
+                                            :class="['w-7 h-7 rounded text-xs font-bold border transition-colors', form.wifi_details_password_bold ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-400']"
+                                            title="Bold">B</button>
+                                        <button type="button" @click="form.wifi_details_password_italic = !form.wifi_details_password_italic"
+                                            :class="['w-7 h-7 rounded text-xs italic border transition-colors', form.wifi_details_password_italic ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-400']"
+                                            title="Italic">I</button>
+                                        <button type="button" @click="form.wifi_details_password_underline = !form.wifi_details_password_underline"
+                                            :class="['w-7 h-7 rounded text-xs underline border transition-colors', form.wifi_details_password_underline ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-400']"
+                                            title="Underline">U</button>
+                                    </div>
+                                    <div class="shrink-0">
+                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Color</label>
+                                        <div class="flex items-center gap-1">
+                                            <input type="color" v-model="form.wifi_details_password_color"
+                                                class="w-7 h-7 rounded cursor-pointer border border-gray-200 dark:border-gray-700 p-0.5 bg-white dark:bg-gray-800 shrink-0" />
+                                            <input type="text" v-model="form.wifi_details_password_color" maxlength="7"
+                                                class="w-16 px-1.5 py-1.5 text-xs font-mono border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Toggles row -->
+                                <div class="flex items-center justify-end gap-4 pt-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Show password</span>
+                                        <button type="button" @click="form.wifi_details_show_password = !form.wifi_details_show_password"
+                                            :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.wifi_details_show_password ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                            <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.wifi_details_show_password ? 'translate-x-4' : 'translate-x-0']" />
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Style separately</span>
+                                        <button type="button" @click="form.wifi_details_password_separate_style = !form.wifi_details_password_separate_style"
+                                            :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.wifi_details_password_separate_style ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                            <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.wifi_details_password_separate_style ? 'translate-x-4' : 'translate-x-0']" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </div>
 
                 <!-- Styling -->
                 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Design</h2>
-                    <div class="space-y-4">
+                    <div class="flex items-center justify-between" :class="showDesign ? 'mb-4' : ''">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Design</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Customize colors, dot style and error correction</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="showDesign = !showDesign"
+                            :class="[
+                                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
+                                showDesign ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700'
+                            ]"
+                        >
+                            <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', showDesign ? 'translate-x-5' : 'translate-x-0']" />
+                        </button>
+                    </div>
+                    <div v-if="showDesign" class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">QR Color</label>
@@ -505,10 +727,13 @@ const downloadQr = async (ext) => {
                     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                         <div class="flex items-center justify-between mb-3">
                             <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quick Download</p>
-                            <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
-                                <input v-model="roundedExport" type="checkbox" class="rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5" />
-                                Rounded
-                            </label>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Rounded</span>
+                                <button type="button" @click="roundedExport = !roundedExport"
+                                    :class="['relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', roundedExport ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                    <span :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', roundedExport ? 'translate-x-4' : 'translate-x-0']" />
+                                </button>
+                            </div>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <button @click="downloadQr('png')" class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">PNG</button>

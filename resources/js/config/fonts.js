@@ -10,6 +10,7 @@ export const sansSerif = [
 ]
 
 export const monospace = [
+    { label: 'Consolas', value: 'Consolas', stack: "Consolas, 'Courier New', monospace" },
     { label: 'Roboto Mono', value: 'Roboto Mono', stack: "'Roboto Mono', monospace" },
     { label: 'Source Code Pro', value: 'Source Code Pro', stack: "'Source Code Pro', monospace" },
     { label: 'Space Mono', value: 'Space Mono', stack: "'Space Mono', monospace" },
