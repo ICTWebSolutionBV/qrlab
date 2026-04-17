@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Feedback Inbox
+    |--------------------------------------------------------------------------
+    |
+    | Destination address for in-app feedback submissions. Falls back to the
+    | global from address when FEEDBACK_EMAIL is not set.
+    |
+    */
+
+    'feedback_email' => env('FEEDBACK_EMAIL', env('MAIL_FROM_ADDRESS')),
+
 ];

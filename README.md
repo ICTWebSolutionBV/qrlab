@@ -1,6 +1,6 @@
 # QR Lab
 
-[![Version](https://img.shields.io/badge/Version-1.0.2-brightgreen?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.1.0-brightgreen?style=flat-square)](CHANGELOG.md)
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -88,6 +88,9 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
 - **Timezone** — Choose from 24 common IANA zones; defaults to `Europe/Amsterdam`.
 - **Date/time format** — Configurable date format (DD-MM-YYYY, MM/DD/YYYY, etc.) and 24h/12h time with seconds. Shared `Intl.DateTimeFormat`-based formatter is used across the app.
 - **Passkey management** — Register and revoke passkeys from the profile page.
+
+### Feedback
+- **In-app feedback widget** — "Send feedback" button in the sidebar opens a modal with optional name/email, a message, and up to 5 screenshot uploads. Submissions are emailed to the address set via `FEEDBACK_EMAIL` (falls back to `MAIL_FROM_ADDRESS`). Reply-to is set to the submitter when provided.
 
 ### UI / UX
 - **Light & dark mode** — Full coverage across every page.

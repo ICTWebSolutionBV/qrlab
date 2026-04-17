@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\TwoFactorEnrollmentController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasskeyController;
 use App\Http\Controllers\Admin\StatsController as AdminStatsController;
@@ -70,6 +71,9 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Feedback (authenticated users only)
+    Route::post('/feedback', [FeedbackController::class, 'store'])->middleware('throttle:5,1')->name('feedback.store');
 
     // QR Codes (save, edit, delete require auth)
     Route::post('/qr', [QrCodeController::class, 'store'])->name('qr.store');

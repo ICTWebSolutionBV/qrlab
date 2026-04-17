@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Link, usePage, router } from '@inertiajs/vue3'
+import { Link, usePage, router, useForm } from '@inertiajs/vue3'
 import { useTheme } from '@/composables/useTheme'
 
 const page = usePage()
@@ -31,6 +31,48 @@ const isActive = (routeName) => {
 }
 
 const logout = () => router.post(route('logout'))
+
+// Feedback modal
+const showFeedback = ref(false)
+const feedbackFiles = ref([])
+const feedbackForm = useForm({
+    name: '',
+    email: '',
+    message: '',
+    screenshots: [],
+})
+
+const openFeedback = () => {
+    feedbackForm.reset()
+    feedbackForm.clearErrors()
+    feedbackFiles.value = []
+    showFeedback.value = true
+    showSidebar.value = false
+}
+const closeFeedback = () => {
+    showFeedback.value = false
+}
+const onFeedbackFiles = (e) => {
+    const files = Array.from(e.target.files || []).slice(0, 5)
+    feedbackFiles.value = files
+    feedbackForm.screenshots = files
+}
+const removeFeedbackFile = (idx) => {
+    feedbackFiles.value.splice(idx, 1)
+    feedbackForm.screenshots = [...feedbackFiles.value]
+}
+const submitFeedback = () => {
+    feedbackForm.screenshots = feedbackFiles.value
+    feedbackForm.post(route('feedback.store'), {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            showFeedback.value = false
+            feedbackForm.reset()
+            feedbackFiles.value = []
+        },
+    })
+}
 
 // Theme
 const { themePreference, init: initTheme, cycleTheme } = useTheme(user)
@@ -103,6 +145,11 @@ watch(() => user.value?.theme_preference, (pref) => {
 
             <!-- Sidebar footer -->
             <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
+                <button @click="openFeedback"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    Send feedback
+                </button>
                 <Link :href="route('profile.edit')"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <div class="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-700 dark:text-primary-400 text-xs font-bold">
@@ -189,6 +236,76 @@ watch(() => user.value?.theme_preference, (pref) => {
                     <svg v-else class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     {{ flashMessage.text }}
                     <button @click="showFlash = false" class="ml-2 opacity-75 hover:opacity-100">&times;</button>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- Feedback modal -->
+        <Transition enter-active-class="transition ease-out duration-150" enter-from-class="opacity-0" enter-to-class="opacity-100"
+            leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="showFeedback && !isGuest" class="fixed inset-0 z-[70] flex items-center justify-center p-4" @click.self="closeFeedback">
+                <div class="fixed inset-0 bg-black/50" @click="closeFeedback"></div>
+                <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-start justify-between px-6 pt-5 pb-2">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900 dark:text-white">Send feedback</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Report a bug, suggest an improvement, or just say hi.</p>
+                        </div>
+                        <button @click="closeFeedback" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <form @submit.prevent="submitFeedback" class="px-6 pb-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name <span class="text-gray-400 font-normal">(optional)</span></label>
+                                <input v-model="feedbackForm.name" type="text" maxlength="100"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                <p v-if="feedbackForm.errors.name" class="text-red-500 text-xs mt-1">{{ feedbackForm.errors.name }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email <span class="text-gray-400 font-normal">(optional)</span></label>
+                                <input v-model="feedbackForm.email" type="email" maxlength="255"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
+                                <p v-if="feedbackForm.errors.email" class="text-red-500 text-xs mt-1">{{ feedbackForm.errors.email }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                            <textarea v-model="feedbackForm.message" rows="5" required maxlength="5000"
+                                placeholder="What's on your mind?"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition resize-y"></textarea>
+                            <p v-if="feedbackForm.errors.message" class="text-red-500 text-xs mt-1">{{ feedbackForm.errors.message }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Screenshots <span class="text-gray-400 font-normal">(optional, up to 5, 5&nbsp;MB each)</span></label>
+                            <input type="file" accept="image/*" multiple @change="onFeedbackFiles"
+                                class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 dark:file:bg-gray-800 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-700" />
+                            <ul v-if="feedbackFiles.length" class="mt-2 space-y-1">
+                                <li v-for="(f, idx) in feedbackFiles" :key="idx"
+                                    class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-1.5">
+                                    <span class="truncate">{{ f.name }} <span class="text-gray-400">({{ Math.round(f.size / 1024) }} KB)</span></span>
+                                    <button type="button" @click="removeFeedbackFile(idx)" class="ml-2 text-red-500 hover:text-red-600">&times;</button>
+                                </li>
+                            </ul>
+                            <p v-if="feedbackForm.errors.screenshots || feedbackForm.errors['screenshots.0']" class="text-red-500 text-xs mt-1">
+                                {{ feedbackForm.errors.screenshots || feedbackForm.errors['screenshots.0'] }}
+                            </p>
+                            <div v-if="feedbackForm.progress" class="mt-2 h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-primary-600 transition-all" :style="{ width: feedbackForm.progress.percentage + '%' }"></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pt-2">
+                            <button type="submit" :disabled="feedbackForm.processing"
+                                class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm disabled:opacity-50">
+                                {{ feedbackForm.processing ? 'Sending…' : 'Send feedback' }}
+                            </button>
+                            <button type="button" @click="closeFeedback"
+                                class="px-4 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </Transition>

@@ -19,6 +19,15 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.1.0] — 2026-04-17
+
+### Added
+- In-app feedback widget: "Send feedback" button in the sidebar (above account info) opens a modal with optional name/email, required message, and up to 5 screenshot uploads (5 MB each).
+- Feedback submissions are emailed to `FEEDBACK_EMAIL` (configurable via `config/mail.php`, falls back to `MAIL_FROM_ADDRESS`).
+- Reply-to on feedback emails is set to the submitter when an email is provided; the email body includes account info, originating page URL, and any uploaded screenshots as attachments.
+- `FeedbackMail` mailable, `FeedbackController`, `POST /feedback` route (authenticated, throttled 5/min).
+- `.env.example` entry documenting `FEEDBACK_EMAIL`.
+
 ## [1.0.2] — 2026-04-17
 
 ### Changed
@@ -99,7 +108,8 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ICTWebSolutionBV/qrlab/releases/tag/v1.0.0
