@@ -14,6 +14,7 @@ class QrCode extends Model
 
     protected $fillable = [
         'user_id',
+        'batch_id',
         'type',
         'name',
         'url',
@@ -138,6 +139,11 @@ class QrCode extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(QrCodeBatch::class, 'batch_id');
     }
 
     public function scans(): HasMany

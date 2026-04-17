@@ -12,6 +12,7 @@ use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasskeyController;
 use App\Http\Controllers\Admin\StatsController as AdminStatsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QrBulkController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\QrExportController;
 use App\Http\Controllers\TwoFactorSetupController;
@@ -84,6 +85,16 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
     Route::post('/qr/bulk-destroy', [QrCodeController::class, 'bulkDestroy'])->name('qr.bulk-destroy');
     Route::get('/qr/{qrCode}/export/{format}', [QrExportController::class, 'download'])->name('qr.export');
     Route::get('/qr/{qrCode}/logo', [QrCodeController::class, 'logo'])->name('qr.logo');
+
+    // Bulk import + batches
+    Route::get('/qr/bulk', [QrBulkController::class, 'create'])->name('qr.bulk.create');
+    Route::get('/qr/bulk/template/{type}', [QrBulkController::class, 'template'])->name('qr.bulk.template');
+    Route::post('/qr/bulk/{type}/preview', [QrBulkController::class, 'preview'])->name('qr.bulk.preview');
+    Route::post('/qr/bulk/{type}/discard', [QrBulkController::class, 'discard'])->name('qr.bulk.discard');
+    Route::post('/qr/bulk/{type}', [QrBulkController::class, 'store'])->name('qr.bulk.store');
+    Route::get('/qr/batches/{batch}', [QrBulkController::class, 'show'])->name('qr.bulk.show');
+    Route::delete('/qr/batches/{batch}', [QrBulkController::class, 'destroy'])->name('qr.bulk.destroy');
+    Route::get('/qr/batches/{batch}/export/{format}', [QrBulkController::class, 'exportZip'])->name('qr.bulk.export');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -14,7 +14,7 @@ class DashboardController extends Controller
         $tracking = (string) $request->string('tracking');
         $sort = (string) $request->string('sort', 'latest');
 
-        $query = $request->user()->qrCodes()->withCount('scans');
+        $query = $request->user()->qrCodes()->withCount('scans')->whereNull('batch_id');
 
         if ($search !== '') {
             $like = '%' . $search . '%';
@@ -53,8 +53,21 @@ class DashboardController extends Controller
 
         $qrCodes = $query->paginate(12)->withQueryString();
 
+        $batches = $request->user()->qrCodeBatches()
+            ->withCount('qrCodes')
+            ->latest()
+            ->get()
+            ->map(fn ($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
+                'type' => $b->type,
+                'qr_codes_count' => (int) $b->qr_codes_count,
+                'created_at' => optional($b->created_at)->toISOString(),
+            ]);
+
         return Inertia::render('Dashboard', [
             'qrCodes' => $qrCodes,
+            'batches' => $batches,
             'appUrl' => config('app.url'),
             'filters' => [
                 'search' => $search,

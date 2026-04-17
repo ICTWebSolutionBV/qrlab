@@ -19,6 +19,22 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.2.0] — 2026-04-17
+
+### Added
+- **Bulk import** of QR codes via CSV for all five types (URL, WiFi, Phone, vCard, Email). Each type has a downloadable CSV template with headers and an example row.
+- Upload flow validates the file, stashes the parsed rows server-side, and shows a 5-row preview with per-row errors so users can sanity-check before confirming.
+- New `QrCodeBatch` model + migration (`qr_code_batches` table, `batch_id` FK on `qr_codes` with `nullOnDelete`).
+- `QrBulkImportService` handles schema definitions, CSV templating, parsing/validation, and import.
+- `QrBulkController` with routes for create, template download, preview, discard, store, batch show, batch destroy, and ZIP export.
+- Batch detail page lists every QR code in the batch with scan counts and edit links.
+- **ZIP export per batch** — download every QR code as PNG, SVG, or EPS in a single archive. File names are slugified from the QR name with duplicate-safe suffixes.
+- Dashboard shows batches as distinct "bulk cards" with stacked-layer styling. Section is collapsed by default; when a newly-created batch is detected on the next dashboard visit, it auto-expands once and is then marked as seen.
+- Screenshots added: `bulk-import-upload.png`, `dashboard-batches.png`, `batch-detail.png`.
+
+### Changed
+- Dashboard QR list now excludes QR codes that belong to a batch — they live on the batch page instead.
+
 ## [1.1.0] — 2026-04-17
 
 ### Added

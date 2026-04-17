@@ -8,12 +8,26 @@ import { formatDate } from '@/utils/datetime.js'
 
 const props = defineProps({
     qrCodes: Object,
+    batches: { type: Array, default: () => [] },
     appUrl: { type: String, default: '' },
     filters: {
         type: Object,
         default: () => ({ search: '', type: '', tracking: '', sort: 'latest' }),
     },
 })
+
+const batchTypeLabel = (t) => ({ url: 'URL', wifi: 'WiFi', phone: 'Phone', vcard: 'vCard', email: 'Email' }[t] || t)
+
+// Batches are collapsed by default. When a new batch appears since the last
+// dashboard visit, auto-expand once and then mark it as seen so subsequent
+// visits collapse again.
+const latestBatchId = computed(() => props.batches[0]?.id || null)
+const seenBatchId = typeof window !== 'undefined' ? localStorage.getItem('qr_dashboard_latest_batch_seen') : null
+const hasNewBatch = !!latestBatchId.value && latestBatchId.value !== seenBatchId
+const batchesCollapsed = ref(!hasNewBatch)
+if (hasNewBatch && typeof window !== 'undefined') {
+    localStorage.setItem('qr_dashboard_latest_batch_seen', latestBatchId.value)
+}
 
 const deleteTarget = ref(null)
 const previewTarget = ref(null)
@@ -136,11 +150,49 @@ const fmtDate = (iso) => formatDate(iso)
     <AppLayout>
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">My QR Codes</h1>
-            <Link :href="route('qr.create')"
-                class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                New QR Code
-            </Link>
+            <div class="flex items-center gap-2">
+                <Link :href="route('qr.bulk.create')"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white font-medium rounded-xl transition-colors text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"/></svg>
+                    Bulk import
+                </Link>
+                <Link :href="route('qr.create')"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    New QR Code
+                </Link>
+            </div>
+        </div>
+
+        <!-- Batches (bulk cards) -->
+        <div v-if="batches.length" class="mb-8">
+            <button type="button" @click="batchesCollapsed = !batchesCollapsed"
+                class="flex items-center gap-2 mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <svg :class="['w-4 h-4 transition-transform', batchesCollapsed ? '-rotate-90' : '']"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+                <span>Batches</span>
+                <span class="text-xs font-medium normal-case tracking-normal text-gray-400">({{ batches.length }})</span>
+            </button>
+            <div v-show="!batchesCollapsed" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <Link v-for="b in batches" :key="b.id" :href="route('qr.bulk.show', b.id)"
+                    class="group relative block">
+                    <!-- stacked layers to convey "bulk" -->
+                    <div class="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"></div>
+                    <div class="absolute inset-0 translate-x-0.5 translate-y-0.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"></div>
+                    <div class="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 group-hover:border-primary-500 transition-colors">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+                                {{ batchTypeLabel(b.type) }}
+                            </span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ b.qr_codes_count }} codes</span>
+                        </div>
+                        <div class="font-semibold text-gray-900 dark:text-white truncate">{{ b.name }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ fmtDate(b.created_at) }}</div>
+                    </div>
+                </Link>
+            </div>
         </div>
 
         <!-- Filter bar -->

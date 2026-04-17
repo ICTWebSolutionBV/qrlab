@@ -1,6 +1,6 @@
 # QR Lab
 
-[![Version](https://img.shields.io/badge/Version-1.1.0-brightgreen?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.2.0-brightgreen?style=flat-square)](CHANGELOG.md)
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -24,6 +24,18 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
   <img src="docs/screenshots/dashboard-list.png" alt="Dashboard list view with bulk select" width="48%" />
   &nbsp;
   <img src="docs/screenshots/qr-analytics.png" alt="Per-QR analytics dashboard" width="48%" />
+</p>
+
+### Bulk import & batches
+
+<p align="center">
+  <img src="docs/screenshots/bulk-import-upload.png" alt="Bulk import: choose type, download template, upload CSV" width="48%" />
+  &nbsp;
+  <img src="docs/screenshots/dashboard-batches.png" alt="Dashboard with collapsible batches section" width="48%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/batch-detail.png" alt="Batch detail page with ZIP export" width="70%" />
 </p>
 
 ### Administration
@@ -68,6 +80,14 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
 - **Bulk actions** — Select multiple QR codes in list view and delete in one action.
 - **Fluid card layout** — Auto-fill grid scales smoothly from 4 → 3 → 2 → 1 columns.
 - **Show QR modal** — Preview any saved QR code without leaving the dashboard.
+- **Batches** — Imported sets show as distinct "bulk" cards with stacked styling. The section is collapsed by default and auto-expands once when a new batch appears, then collapses again on the next visit.
+
+### Bulk import
+- **CSV import for all 5 QR types** — URL, WiFi, Phone, vCard, Email.
+- **Downloadable templates** — One-click per-type CSV template with headers + example row so users know the exact columns.
+- **Validate & preview** — Upload, see the first 5 rows and per-row errors, then confirm the import. No re-upload on confirm (the preview is stashed server-side).
+- **Batch view** — Every import lands in its own batch page listing every created QR code with scan counts and edit links.
+- **ZIP export** — Download all QR codes in a batch as a single ZIP in PNG, SVG, or EPS. Files are named after each QR code (slugified) with duplicate-safe suffixes.
 
 ### Accounts & authentication
 - **Invite-only access** — No public registration. Admins invite users via secure, single-use invite links (HTML email included).
