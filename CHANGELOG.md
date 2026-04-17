@@ -19,6 +19,11 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.0.2] — 2026-04-17
+
+### Changed
+- Replaced personal name in dashboard screenshots with a generated name (Jordan Hayes) for the vCard demo QR.
+
 ## [1.0.1] — 2026-04-17
 
 ### Added
@@ -94,6 +99,7 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ICTWebSolutionBV/qrlab/releases/tag/v1.0.0
