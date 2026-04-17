@@ -78,6 +78,7 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
     Route::delete('/qr/{qrCode}', [QrCodeController::class, 'destroy'])->name('qr.destroy');
     Route::post('/qr/bulk-destroy', [QrCodeController::class, 'bulkDestroy'])->name('qr.bulk-destroy');
     Route::get('/qr/{qrCode}/export/{format}', [QrExportController::class, 'download'])->name('qr.export');
+    Route::get('/qr/{qrCode}/logo', [QrCodeController::class, 'logo'])->name('qr.logo');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -12,7 +12,7 @@ const props = defineProps({
 })
 
 const qrPreviewRef = ref(null)
-const logoPreview = ref(null)
+const logoPreview = ref(props.qrCode.logo_url || null)
 const showTextLabels = ref(false)
 const showDesign = ref(false)
 const showLogo = ref(!!props.qrCode.logo_path)

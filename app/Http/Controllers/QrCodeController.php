@@ -7,6 +7,7 @@ use App\Models\QrCodeScan;
 use App\Services\IpGeolocationService;
 use App\Services\QrScanAnalyticsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class QrCodeController extends Controller
@@ -135,6 +136,10 @@ class QrCodeController extends Controller
         }
 
         $qrCode = QrCode::create($data);
+        // Reorganize the logo path under the QR id so cleanup is deterministic.
+        if ($qrCode->logo_path) {
+            $this->moveLogoToQrFolder($qrCode);
+        }
 
         return redirect()->route('qr.edit', $qrCode)->with('success', 'QR code created.');
     }
@@ -146,8 +151,27 @@ class QrCodeController extends Controller
         }
 
         return Inertia::render('QrCode/Edit', [
-            'qrCode' => $qrCode,
+            'qrCode' => array_merge($qrCode->toArray(), [
+                'logo_url' => $qrCode->logo_path
+                    ? route('qr.logo', $qrCode)
+                    : null,
+            ]),
             'appUrl' => config('app.url'),
+        ]);
+    }
+
+    public function logo(QrCode $qrCode, Request $request)
+    {
+        if ($qrCode->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        if (!$qrCode->logo_path || !Storage::disk('private')->exists($qrCode->logo_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('private')->response($qrCode->logo_path, null, [
+            'Cache-Control' => 'private, max-age=60',
         ]);
     }
 
@@ -262,7 +286,14 @@ class QrCodeController extends Controller
         $data = $request->validate($rules);
 
         if ($request->hasFile('logo')) {
-            $data['logo_path'] = $request->file('logo')->store('qr-logos/' . $request->user()->id, 'private');
+            // Remove the previous logo (if any) so we don't leak files.
+            if ($qrCode->logo_path && Storage::disk('private')->exists($qrCode->logo_path)) {
+                Storage::disk('private')->delete($qrCode->logo_path);
+            }
+            $data['logo_path'] = $request->file('logo')->store(
+                'qr-logos/' . $request->user()->id . '/' . $qrCode->id,
+                'private'
+            );
         }
 
         if (!empty($data['tracking_enabled']) && !$qrCode->short_code) {
@@ -274,12 +305,34 @@ class QrCodeController extends Controller
         return back()->with('success', 'QR code updated.');
     }
 
+    /**
+     * Move a freshly-created logo into a per-QR folder so we can clean up
+     * everything for a QR code in one call.
+     */
+    private function moveLogoToQrFolder(QrCode $qrCode): void
+    {
+        $disk = Storage::disk('private');
+        $current = $qrCode->logo_path;
+        if (!$current || !$disk->exists($current)) {
+            return;
+        }
+
+        $dest = 'qr-logos/' . $qrCode->user_id . '/' . $qrCode->id . '/' . basename($current);
+        if ($current === $dest) {
+            return;
+        }
+
+        $disk->move($current, $dest);
+        $qrCode->update(['logo_path' => $dest]);
+    }
+
     public function destroy(QrCode $qrCode, Request $request)
     {
         if ($qrCode->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
             abort(403);
         }
 
+        $this->deleteLogoAssets($qrCode);
         $qrCode->delete();
 
         return redirect()->route('dashboard')->with('success', 'QR code deleted.');
@@ -299,9 +352,29 @@ class QrCodeController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        $qrCodes = $query->get();
+        foreach ($qrCodes as $qr) {
+            $this->deleteLogoAssets($qr);
+        }
+
         $count = $query->delete();
 
         return redirect()->route('dashboard')->with('success', $count . ' QR code' . ($count === 1 ? '' : 's') . ' deleted.');
+    }
+
+    /**
+     * Remove any logo files associated with a QR code (folder + stray file).
+     */
+    private function deleteLogoAssets(QrCode $qrCode): void
+    {
+        $disk = Storage::disk('private');
+        $folder = 'qr-logos/' . $qrCode->user_id . '/' . $qrCode->id;
+        if ($disk->exists($folder)) {
+            $disk->deleteDirectory($folder);
+        }
+        if ($qrCode->logo_path && $disk->exists($qrCode->logo_path)) {
+            $disk->delete($qrCode->logo_path);
+        }
     }
 
     public function analytics(QrCode $qrCode, Request $request, QrScanAnalyticsService $analytics)
