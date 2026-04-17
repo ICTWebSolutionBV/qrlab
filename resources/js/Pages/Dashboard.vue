@@ -189,7 +189,7 @@ const fmtDate = (iso) => {
 
         <!-- Grid / Card view -->
         <div v-else-if="viewMode === 'grid'"
-            class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+            class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(310px,1fr))]">
             <div v-for="qr in qrCodes.data" :key="qr.id"
                 class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 hover:border-primary-300 dark:hover:border-primary-700 transition-colors group">
                 <div class="flex items-start justify-between mb-3 gap-2">
