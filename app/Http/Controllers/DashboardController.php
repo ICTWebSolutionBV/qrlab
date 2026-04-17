@@ -16,6 +16,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'qrCodes' => $qrCodes,
+            'appUrl' => config('app.url'),
         ]);
     }
 }
