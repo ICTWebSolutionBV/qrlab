@@ -17,6 +17,42 @@ const props = defineProps({
 const deleteTarget = ref(null)
 const previewTarget = ref(null)
 
+// Bulk selection (list view)
+const selectedIds = ref(new Set())
+const bulkConfirmOpen = ref(false)
+
+const isSelected = (id) => selectedIds.value.has(id)
+const toggleSelect = (id) => {
+    const next = new Set(selectedIds.value)
+    next.has(id) ? next.delete(id) : next.add(id)
+    selectedIds.value = next
+}
+const allVisibleSelected = computed(() => {
+    const rows = props.qrCodes.data || []
+    return rows.length > 0 && rows.every((r) => selectedIds.value.has(r.id))
+})
+const toggleSelectAll = () => {
+    const rows = props.qrCodes.data || []
+    if (allVisibleSelected.value) {
+        const next = new Set(selectedIds.value)
+        rows.forEach((r) => next.delete(r.id))
+        selectedIds.value = next
+    } else {
+        const next = new Set(selectedIds.value)
+        rows.forEach((r) => next.add(r.id))
+        selectedIds.value = next
+    }
+}
+const clearSelection = () => { selectedIds.value = new Set() }
+
+const bulkDelete = () => {
+    if (selectedIds.value.size === 0) return
+    router.post(route('qr.bulk-destroy'), { ids: Array.from(selectedIds.value) }, {
+        preserveScroll: true,
+        onSuccess: () => { clearSelection(); bulkConfirmOpen.value = false },
+    })
+}
+
 // View mode: grid or list, persisted
 const viewMode = ref(localStorage.getItem('qr_dashboard_view') || 'grid')
 watch(viewMode, (v) => localStorage.setItem('qr_dashboard_view', v))
@@ -230,10 +266,32 @@ const fmtDate = (iso) => {
 
         <!-- List / Table view -->
         <div v-else class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+            <!-- Bulk action bar -->
+            <div v-if="selectedIds.size > 0"
+                class="flex items-center justify-between gap-3 px-5 py-2.5 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-100 dark:border-primary-900/40">
+                <div class="text-sm text-primary-700 dark:text-primary-300">
+                    <span class="font-semibold">{{ selectedIds.size }}</span> selected
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="clearSelection" type="button"
+                        class="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        Clear
+                    </button>
+                    <button @click="bulkConfirmOpen = true" type="button"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Delete selected
+                    </button>
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         <tr>
+                            <th class="w-10 px-4 py-3">
+                                <input type="checkbox" :checked="allVisibleSelected" @change="toggleSelectAll"
+                                    class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-900" />
+                            </th>
                             <th class="text-left px-5 py-3 font-medium">Name</th>
                             <th class="text-left px-5 py-3 font-medium">Type</th>
                             <th class="text-left px-5 py-3 font-medium">Target</th>
@@ -244,7 +302,13 @@ const fmtDate = (iso) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        <tr v-for="qr in qrCodes.data" :key="qr.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                        <tr v-for="qr in qrCodes.data" :key="qr.id"
+                            :class="['hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors',
+                                isSelected(qr.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : '']">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" :checked="isSelected(qr.id)" @change="toggleSelect(qr.id)"
+                                    class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-900" />
+                            </td>
                             <td class="px-5 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap max-w-[220px] truncate">{{ qr.name }}</td>
                             <td class="px-5 py-3">
                                 <span class="text-xs px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400">
@@ -371,6 +435,48 @@ const fmtDate = (iso) => {
                             </div>
                         </div>
                     </Transition>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Bulk delete confirmation modal -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="bulkConfirmOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="bulkConfirmOpen = false">
+                    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="bulkConfirmOpen = false" />
+                    <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-6 w-full max-w-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white">Delete selected QR codes</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-700 dark:text-gray-300 mb-5">
+                            You're about to permanently delete
+                            <span class="font-medium text-gray-900 dark:text-white">{{ selectedIds.size }}</span>
+                            QR code{{ selectedIds.size === 1 ? '' : 's' }}.
+                        </p>
+                        <div class="flex gap-3">
+                            <button @click="bulkConfirmOpen = false" type="button"
+                                class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                Cancel
+                            </button>
+                            <button @click="bulkDelete" type="button"
+                                class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors">
+                                Delete {{ selectedIds.size }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </Transition>
         </Teleport>

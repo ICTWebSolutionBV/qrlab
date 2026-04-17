@@ -285,6 +285,25 @@ class QrCodeController extends Controller
         return redirect()->route('dashboard')->with('success', 'QR code deleted.');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $user = $request->user();
+
+        $query = QrCode::whereIn('id', $data['ids']);
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        $count = $query->delete();
+
+        return redirect()->route('dashboard')->with('success', $count . ' QR code' . ($count === 1 ? '' : 's') . ' deleted.');
+    }
+
     public function analytics(QrCode $qrCode, Request $request, QrScanAnalyticsService $analytics)
     {
         if ($qrCode->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
