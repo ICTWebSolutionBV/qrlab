@@ -74,6 +74,54 @@ const submitFeedback = () => {
     })
 }
 
+// Changelog modal
+const appVersion = computed(() => page.props.app_version || '')
+const showChangelog = ref(false)
+const changelogLoading = ref(false)
+const changelogData = ref(null)
+
+const hasUnseenChangelog = computed(() => {
+    if (!appVersion.value) return false
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('qr_changelog_last_seen') !== appVersion.value
+})
+
+const openChangelog = async () => {
+    showChangelog.value = true
+    showSidebar.value = false
+    if (!changelogData.value) {
+        changelogLoading.value = true
+        try {
+            const res = await fetch(route('changelog'), { headers: { 'Accept': 'application/json' } })
+            changelogData.value = await res.json()
+        } catch (e) {
+            console.error('Failed to load changelog', e)
+        } finally {
+            changelogLoading.value = false
+        }
+    }
+    if (typeof window !== 'undefined' && appVersion.value) {
+        localStorage.setItem('qr_changelog_last_seen', appVersion.value)
+    }
+}
+const closeChangelog = () => { showChangelog.value = false }
+
+// Lightbox for changelog images
+const lightboxImage = ref(null)
+const openLightbox = (img) => { lightboxImage.value = img }
+const closeLightbox = () => { lightboxImage.value = null }
+
+// Minimal inline markdown: `code`, **bold**, *italic*. HTML-escape first.
+const renderInline = (text) => {
+    const esc = String(text)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    return esc
+        .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs">$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|\s)\*([^*]+)\*/g, '$1<em>$2</em>')
+}
+
 // Theme
 const { themePreference, init: initTheme, cycleTheme } = useTheme(user)
 onMounted(initTheme)
@@ -149,6 +197,13 @@ watch(() => user.value?.theme_preference, (pref) => {
                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     Send feedback
+                </button>
+                <button @click="openChangelog"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="flex-1 text-left">What's new</span>
+                    <span v-if="hasUnseenChangelog" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary-600 text-white">NEW</span>
+                    <span v-else-if="appVersion" class="text-[10px] text-gray-400">v{{ appVersion }}</span>
                 </button>
                 <Link :href="route('profile.edit')"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -307,6 +362,89 @@ watch(() => user.value?.theme_preference, (pref) => {
                         </div>
                     </form>
                 </div>
+            </div>
+        </Transition>
+
+        <!-- Changelog modal -->
+        <Transition enter-active-class="transition ease-out duration-150" enter-from-class="opacity-0" enter-to-class="opacity-100"
+            leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="showChangelog && !isGuest" class="fixed inset-0 z-[70] flex items-center justify-center p-4" @click.self="closeChangelog">
+                <div class="fixed inset-0 bg-black/50" @click="closeChangelog"></div>
+                <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                    <div class="flex items-start justify-between px-6 pt-5 pb-3 border-b border-gray-100 dark:border-gray-800">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900 dark:text-white">What's new</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                Release notes for QR Lab
+                                <span v-if="appVersion">· <span class="font-medium text-gray-700 dark:text-gray-300">v{{ appVersion }}</span></span>
+                            </p>
+                        </div>
+                        <button @click="closeChangelog" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="overflow-y-auto px-6 py-5 flex-1">
+                        <div v-if="changelogLoading" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading release notes…</div>
+
+                        <div v-else-if="!changelogData?.versions?.length" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No release notes yet.</div>
+
+                        <div v-else class="space-y-8">
+                            <section v-for="v in changelogData.versions" :key="v.version">
+                                <div class="flex items-baseline gap-2 mb-3">
+                                    <h3 class="text-base font-bold text-gray-900 dark:text-white">v{{ v.version }}</h3>
+                                    <span v-if="v.version === changelogData.app_version"
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary-600 text-white">
+                                        Current
+                                    </span>
+                                    <span v-if="v.date" class="text-xs text-gray-500 dark:text-gray-400 ml-auto">{{ v.date }}</span>
+                                </div>
+
+                                <div v-if="v.images?.length" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                    <button v-for="(img, i) in v.images" :key="i" type="button" @click="openLightbox(img)"
+                                        class="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:border-primary-400 transition-colors cursor-zoom-in">
+                                        <img :src="img.src" :alt="img.alt" class="w-full h-auto block" loading="lazy" />
+                                    </button>
+                                </div>
+
+                                <div v-for="s in v.sections" :key="s.title" class="mb-3 last:mb-0">
+                                    <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1.5">{{ s.title }}</h4>
+                                    <ul class="space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+                                        <li v-for="(item, i) in s.items" :key="i" class="flex gap-2">
+                                            <span class="text-primary-500 mt-1">•</span>
+                                            <span v-html="renderInline(item)"></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                        <a href="https://github.com/ICTWebSolutionBV/qrlab/blob/main/CHANGELOG.md" target="_blank" rel="noopener"
+                            class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                            View full CHANGELOG on GitHub ↗
+                        </a>
+                        <button type="button" @click="closeChangelog"
+                            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm">
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- Lightbox for changelog images -->
+        <Transition enter-active-class="transition ease-out duration-150" enter-from-class="opacity-0" enter-to-class="opacity-100"
+            leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="lightboxImage" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/85" @click.self="closeLightbox" @keydown.esc="closeLightbox" tabindex="0">
+                <button type="button" @click="closeLightbox" class="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <figure class="max-w-[95vw] max-h-[92vh] flex flex-col items-center gap-3" @click.stop>
+                    <img :src="lightboxImage.src" :alt="lightboxImage.alt" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl" />
+                    <figcaption v-if="lightboxImage.alt" class="text-sm text-white/80 text-center px-4">{{ lightboxImage.alt }}</figcaption>
+                </figure>
             </div>
         </Transition>
 

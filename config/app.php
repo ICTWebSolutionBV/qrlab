@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | Current QR Lab release. Shown in the in-app changelog modal and used
+    | to detect whether a user has seen the latest release notes.
+    |
+    */
+
+    'version' => '1.3.0',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

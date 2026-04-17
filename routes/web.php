@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\TwoFactorEnrollmentController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\InviteController;
@@ -75,6 +76,10 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
 
     // Feedback (authenticated users only)
     Route::post('/feedback', [FeedbackController::class, 'store'])->middleware('throttle:5,1')->name('feedback.store');
+
+    // Changelog (in-app release notes)
+    Route::get('/changelog', [ChangelogController::class, 'index'])->name('changelog');
+    Route::get('/changelog/image/{file}', [ChangelogController::class, 'image'])->name('changelog.image');
 
     // QR Codes (save, edit, delete require auth)
     Route::post('/qr', [QrCodeController::class, 'store'])->name('qr.store');

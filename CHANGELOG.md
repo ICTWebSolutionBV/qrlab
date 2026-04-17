@@ -19,6 +19,17 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.3.0] — 2026-04-17
+
+### Added
+- **In-app "What's new" modal** — new sidebar button below "Send feedback" opens a popup with release notes parsed straight from `CHANGELOG.md`. Renders each version with date, grouped sections (Added / Changed / Fixed), and optional screenshots per release.
+- A `NEW` badge is shown next to the button until the user has opened the modal for the current `app.version`; dismissed state is persisted in `localStorage`.
+- `ChangelogService` parses the Markdown changelog into structured data; `ChangelogController` exposes it at `GET /changelog` (JSON) and serves release screenshots via `GET /changelog/image/{file}` so images can live in `docs/screenshots/` (outside `public/`).
+- `app.version` config value + Inertia-shared `app_version` so the frontend knows the current release.
+
+### Documentation
+- README: new **Environment variables** section documenting every meaningful `.env` setting (Application, Security/auth, Database, Mail, Cache/queues/storage, Optional services) with defaults, allowed values, and descriptions.
+
 ## [1.2.0] — 2026-04-17
 
 ### Added

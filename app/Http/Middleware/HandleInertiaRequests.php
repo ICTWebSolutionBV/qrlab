@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
                         ->map(fn ($key) => $key->only(['id', 'name', 'last_used_at'])),
                 ] : null,
             ],
+            'app_version' => config('app.version', '1.0.0'),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
