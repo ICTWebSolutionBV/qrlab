@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { formatDate, formatTime } from '@/utils/datetime.js'
 import { Line, Bar } from 'vue-chartjs'
 import {
     Chart as ChartJS,
@@ -102,17 +103,8 @@ const pct = (count, total) => total > 0 ? Math.round((count / total) * 100) : 0
 
 const totalScans = computed(() => props.analytics.totals.all_time || 0)
 
-const fmtDate = (iso) => {
-    if (!iso) return '—'
-    const d = new Date(iso)
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-const fmtTime = (iso) => {
-    if (!iso) return '—'
-    const d = new Date(iso)
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-}
+const fmtDate = (iso) => formatDate(iso)
+const fmtTime = (iso) => formatTime(iso)
 
 // Turn ISO country code (e.g. "US") into flag emoji
 const flag = (code) => {

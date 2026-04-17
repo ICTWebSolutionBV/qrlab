@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { Head, useForm, usePage, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { formatDateTime } from '@/utils/datetime.js'
+import { computed } from 'vue'
 
 const props = defineProps({
     user: Object,
@@ -24,6 +26,69 @@ const passwordForm = useForm({
 const themeForm = useForm({
     theme_preference: props.user.theme_preference,
 })
+
+// Date & time preferences
+const dateTimeForm = useForm({
+    timezone: props.user.timezone || 'Europe/Amsterdam',
+    date_format: props.user.date_format || 'DD-MM-YYYY',
+    time_format: props.user.time_format || 'HH:mm:ss',
+})
+
+const commonTimezones = [
+    'Europe/Amsterdam',
+    'Europe/London',
+    'Europe/Berlin',
+    'Europe/Paris',
+    'Europe/Madrid',
+    'Europe/Rome',
+    'Europe/Stockholm',
+    'Europe/Warsaw',
+    'Europe/Moscow',
+    'UTC',
+    'America/New_York',
+    'America/Chicago',
+    'America/Denver',
+    'America/Los_Angeles',
+    'America/Toronto',
+    'America/Sao_Paulo',
+    'Asia/Dubai',
+    'Asia/Kolkata',
+    'Asia/Singapore',
+    'Asia/Hong_Kong',
+    'Asia/Shanghai',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+    'Pacific/Auckland',
+]
+
+const dateFormatOptions = [
+    { value: 'DD-MM-YYYY', label: 'DD-MM-YYYY (17-04-2026)' },
+    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (17/04/2026)' },
+    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (04/17/2026)' },
+    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2026-04-17)' },
+    { value: 'D MMM YYYY', label: 'D MMM YYYY (17 Apr 2026)' },
+    { value: 'MMM D YYYY', label: 'MMM D YYYY (Apr 17 2026)' },
+]
+
+const timeFormatOptions = [
+    { value: 'HH:mm:ss', label: '24h with seconds (14:30:45)' },
+    { value: 'HH:mm', label: '24h (14:30)' },
+    { value: 'hh:mm:ss A', label: '12h with seconds (02:30:45 PM)' },
+    { value: 'hh:mm A', label: '12h (02:30 PM)' },
+]
+
+const dateTimePreview = computed(() => formatDateTime(new Date().toISOString(), {
+    timezone: dateTimeForm.timezone,
+    dateFormat: dateTimeForm.date_format,
+    timeFormat: dateTimeForm.time_format,
+}))
+
+const updateDateTime = () => {
+    dateTimeForm.put(route('profile.datetime'), {
+        preserveScroll: true,
+        onSuccess: () => router.reload({ only: ['auth'] }),
+    })
+}
 
 const passkeyName = ref('')
 const passkeyLoading = ref(false)
@@ -250,6 +315,51 @@ const deletePasskey = (id) => {
                         {{ option === 'auto' ? 'System' : option }}
                     </button>
                 </div>
+            </div>
+
+            <!-- Date & Time -->
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Date &amp; Time</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Controls how dates and times are displayed across the app.
+                </p>
+                <form @submit.prevent="updateDateTime" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Timezone</label>
+                        <select v-model="dateTimeForm.timezone"
+                            class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none transition">
+                            <option v-for="tz in commonTimezones" :key="tz" :value="tz">{{ tz }}</option>
+                        </select>
+                        <p v-if="dateTimeForm.errors.timezone" class="text-red-500 text-xs mt-1">{{ dateTimeForm.errors.timezone }}</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date format</label>
+                            <select v-model="dateTimeForm.date_format"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none transition">
+                                <option v-for="o in dateFormatOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                            </select>
+                            <p v-if="dateTimeForm.errors.date_format" class="text-red-500 text-xs mt-1">{{ dateTimeForm.errors.date_format }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time format</label>
+                            <select v-model="dateTimeForm.time_format"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none transition">
+                                <option v-for="o in timeFormatOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                            </select>
+                            <p v-if="dateTimeForm.errors.time_format" class="text-red-500 text-xs mt-1">{{ dateTimeForm.errors.time_format }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Preview: <span class="font-mono text-gray-900 dark:text-white">{{ dateTimePreview }}</span>
+                        </p>
+                        <button type="submit" :disabled="dateTimeForm.processing"
+                            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors text-sm disabled:opacity-50">
+                            Save
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <!-- Two-Factor Authentication -->

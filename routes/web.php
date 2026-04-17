@@ -84,6 +84,7 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::put('/profile/theme', [ProfileController::class, 'updateTheme'])->name('profile.theme');
+    Route::put('/profile/datetime', [ProfileController::class, 'updateDateTime'])->name('profile.datetime');
 
     // Two-Factor setup (profile)
     Route::post('/profile/two-factor/totp/setup', [TwoFactorSetupController::class, 'totpSetup'])->name('two-factor.totp.setup');

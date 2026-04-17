@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\LaravelPasskeys\Models\Concerns\HasPasskeys;
 use Spatie\LaravelPasskeys\Models\Concerns\InteractsWithPasskeys;
 
-#[Fillable(['name', 'first_name', 'last_name', 'email', 'password', 'role', 'theme_preference', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'two_factor_email_enabled'])]
+#[Fillable(['name', 'first_name', 'last_name', 'email', 'password', 'role', 'theme_preference', 'timezone', 'date_format', 'time_format', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'two_factor_email_enabled'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements HasPasskeys
 {

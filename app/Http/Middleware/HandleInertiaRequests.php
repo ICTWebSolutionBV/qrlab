@@ -25,6 +25,9 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'role' => $request->user()->role,
                     'theme_preference' => $request->user()->theme_preference,
+                    'timezone' => $request->user()->timezone ?: 'Europe/Amsterdam',
+                    'date_format' => $request->user()->date_format ?: 'DD-MM-YYYY',
+                    'time_format' => $request->user()->time_format ?: 'HH:mm:ss',
                     'passkeys' => fn () => $request->user()->passkeys()
                         ->get()
                         ->map(fn ($key) => $key->only(['id', 'name', 'last_used_at'])),

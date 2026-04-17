@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import QrPreview from '@/Components/QrPreview.vue'
 import { buildQrPayload } from '@/utils/qrPayload.js'
+import { formatDate } from '@/utils/datetime.js'
 
 const props = defineProps({
     qrCodes: Object,
@@ -123,11 +124,7 @@ const subtitle = (qr) => {
     return qr.url
 }
 
-const fmtDate = (iso) => {
-    if (!iso) return '—'
-    const d = new Date(iso)
-    return d.toLocaleDateString()
-}
+const fmtDate = (iso) => formatDate(iso)
 </script>
 
 <template>
