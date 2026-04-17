@@ -16,7 +16,18 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index()
+    /**
+     * Roles assignable by the current actor. Only super admins can grant
+     * the super_admin role; regular admins are limited to user/admin.
+     */
+    private function assignableRoles(Request $request): array
+    {
+        return $request->user()?->isSuperAdmin()
+            ? ['user', 'admin', 'super_admin']
+            : ['user', 'admin'];
+    }
+
+    public function index(Request $request)
     {
         // Auto-cleanup: remove invites that have been accepted (used_at set)
         // or whose email already has a User account — either way the invite
@@ -47,12 +58,15 @@ class UserController extends Controller
                 'used_at' => $invite->used_at?->toISOString(),
                 'is_valid' => $invite->isValid(),
             ]),
+            'assignableRoles' => $this->assignableRoles($request),
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('Admin/Users/Create');
+        return Inertia::render('Admin/Users/Create', [
+            'assignableRoles' => $this->assignableRoles($request),
+        ]);
     }
 
     public function store(Request $request)
@@ -62,7 +76,7 @@ class UserController extends Controller
             'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['required', Password::defaults(), 'confirmed'],
-            'role' => ['required', 'in:user,admin'],
+            'role' => ['required', 'in:' . implode(',', $this->assignableRoles($request))],
         ]);
 
         User::create([
@@ -77,7 +91,7 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'User created.');
     }
 
-    public function edit(User $user)
+    public function edit(User $user, Request $request)
     {
         return Inertia::render('Admin/Users/Edit', [
             'editUser' => [
@@ -87,16 +101,24 @@ class UserController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
             ],
+            'assignableRoles' => $this->assignableRoles($request),
         ]);
     }
 
     public function update(Request $request, User $user)
     {
+        $assignable = $this->assignableRoles($request);
+
+        // Prevent regular admins from demoting an existing super admin.
+        if ($user->isSuperAdmin() && !in_array('super_admin', $assignable, true)) {
+            $assignable[] = 'super_admin';
+        }
+
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
-            'role' => ['required', 'in:user,admin'],
+            'role' => ['required', 'in:' . implode(',', $assignable)],
         ]);
 
         $user->update([
@@ -116,6 +138,10 @@ class UserController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
 
+        if ($user->isSuperAdmin() && !$request->user()->isSuperAdmin()) {
+            return back()->with('error', 'Only a super admin can delete a super admin.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted.');
@@ -127,7 +153,7 @@ class UserController extends Controller
             'email' => ['required', 'email'],
             'first_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
-            'role' => ['required', 'in:user,admin'],
+            'role' => ['required', 'in:' . implode(',', $this->assignableRoles($request))],
             'expires_hours' => ['required', 'integer', 'min:1', 'max:720'],
         ]);
 

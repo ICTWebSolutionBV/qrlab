@@ -4,7 +4,17 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 
 const props = defineProps({
     editUser: Object,
+    assignableRoles: { type: Array, default: () => ['user', 'admin'] },
 })
+
+const roleLabel = (r) => r === 'super_admin' ? 'Super Admin' : (r === 'admin' ? 'Admin' : 'User')
+
+// If editing a super admin, make sure the option is visible even for regular admins
+const roleOptions = (() => {
+    const opts = [...props.assignableRoles]
+    if (props.editUser.role && !opts.includes(props.editUser.role)) opts.push(props.editUser.role)
+    return opts
+})()
 
 const form = useForm({
     first_name: props.editUser.first_name,
@@ -54,8 +64,7 @@ const submit = () => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                         <select v-model="form.role"
                             class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none">
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
+                            <option v-for="r in roleOptions" :key="r" :value="r">{{ roleLabel(r) }}</option>
                         </select>
                     </div>
                     <div class="flex gap-3 pt-2">

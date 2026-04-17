@@ -6,7 +6,15 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 defineProps({
     users: Array,
     invites: Array,
+    assignableRoles: { type: Array, default: () => ['user', 'admin'] },
 })
+
+const roleLabel = (r) => r === 'super_admin' ? 'Super Admin' : (r === 'admin' ? 'Admin' : 'User')
+const rolePillClass = (r) => r === 'super_admin'
+    ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400'
+    : (r === 'admin'
+        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400')
 
 const showInviteForm = ref(false)
 
@@ -101,8 +109,7 @@ const twoFactorSummary = (user) => {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                     <select v-model="inviteForm.role"
                         class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
+                        <option v-for="r in assignableRoles" :key="r" :value="r">{{ roleLabel(r) }}</option>
                     </select>
                 </div>
                 <div class="w-28">
@@ -134,8 +141,8 @@ const twoFactorSummary = (user) => {
                         <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">{{ user.name }}</td>
                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">{{ user.email }}</td>
                         <td class="px-4 py-3">
-                            <span :class="[user.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400']"
-                                class="text-xs px-2 py-1 rounded-full font-medium capitalize">{{ user.role }}</span>
+                            <span :class="rolePillClass(user.role)"
+                                class="text-xs px-2 py-1 rounded-full font-medium">{{ roleLabel(user.role) }}</span>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{{ twoFactorSummary(user) }}</td>
                         <td class="px-4 py-3 text-right whitespace-nowrap">
@@ -158,7 +165,7 @@ const twoFactorSummary = (user) => {
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                     <tr v-for="invite in invites" :key="invite.id">
                         <td class="px-4 py-3 text-gray-900 dark:text-white">{{ invite.email }}</td>
-                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400 capitalize">{{ invite.role }}</td>
+                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400">{{ roleLabel(invite.role) }}</td>
                         <td class="px-4 py-3">
                             <span v-if="invite.used_at" class="text-xs text-green-600">Used</span>
                             <span v-else-if="!invite.is_valid" class="text-xs text-red-500">Expired</span>
