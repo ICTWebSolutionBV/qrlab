@@ -30,6 +30,11 @@ class RequireTwoFactorSetup
             return $next($request);
         }
 
+        // Globally disabled (e.g. local dev) — don't force users through setup.
+        if (!config('auth.two_factor_enabled', true)) {
+            return $next($request);
+        }
+
         $routeName = $request->route()?->getName();
 
         if ($routeName && in_array($routeName, $this->allowedRouteNames, true)) {

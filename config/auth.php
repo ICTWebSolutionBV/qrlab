@@ -114,4 +114,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Two-Factor Authentication
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, the login challenge is skipped and the mandatory-setup
+    | middleware becomes a no-op. Handy for local development; should always
+    | be enabled in production. Defaults to on in every environment except
+    | `local` so developers don't have to juggle TOTP during day-to-day work.
+    |
+    */
+
+    'two_factor_enabled' => env('TWO_FACTOR_ENABLED', env('APP_ENV') !== 'local'),
+
 ];

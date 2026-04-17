@@ -36,7 +36,8 @@ class LoginController extends Controller
         UserInvite::where('email', $user->email)->delete();
 
         // If the user has any form of 2FA enabled, stash and redirect to challenge.
-        if ($user->hasTwoFactorEnabled()) {
+        // Globally skippable via config (e.g. local dev) — production keeps it on.
+        if (config('auth.two_factor_enabled', true) && $user->hasTwoFactorEnabled()) {
             $request->session()->put('2fa:user:id', $user->id);
             $request->session()->put('2fa:remember', $request->boolean('remember'));
             return redirect()->route('two-factor.challenge');
