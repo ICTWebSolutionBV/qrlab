@@ -19,6 +19,16 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.4.0] — 2026-04-17
+
+### Added
+- **Decorative QR frames** — new frame picker in the create flow with 11 presets: no frame, scan-me (top/bottom), rounded card, banner-bottom, tag-notch, pill-with-icon, and four cursive "Scan me" + curved arrow variants (corners: BR, BL, TR, TL).
+- Per-frame controls: border color, separate label color (auto-contrasting text via YIQ luminance), label text, font size, font family (9 options including cursive and Impact), adjustable label distance (0–40px slider), and optional icon from a curated Lucide set of 22 icons for the pill-icon style.
+- Live preview reflects every control instantly; thumbnail grid in the picker renders each preset so users can see what they'll get before selecting.
+
+### Fixed
+- Frame-picker thumbnails and live preview now stay pixel-centered across all 11 presets (resolved flexbox blockification and class-collision bugs on the tag-notch, pill-icon, and arrow variants).
+
 ## [1.3.0] — 2026-04-17
 
 ### Added
@@ -135,7 +145,10 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.0...v1.0.1

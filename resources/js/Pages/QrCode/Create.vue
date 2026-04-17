@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import QrPreview from '@/Components/QrPreview.vue'
+import QrFrame from '@/Components/QrFrame.vue'
 import TextLabelEditor from '@/Components/TextLabelEditor.vue'
 import { getFontStack, monospace, sansSerif } from '@/config/fonts.js'
 
@@ -148,7 +149,69 @@ const form = useForm({
     logo: null,
     logo_size: 30,
     tracking_enabled: false,
+    frame_style: 'none',
+    frame_color: '#111827',
+    frame_label_color: '#111827',
+    frame_text: 'SCAN ME',
+    frame_font_size: 14,
+    frame_font_family: 'system-ui',
+    frame_label_gap: 10,
+    frame_icon: 'none',
 })
+
+const frameStyles = [
+    { value: 'none',            label: 'None' },
+    { value: 'scan-me-top',     label: 'Scan me — top' },
+    { value: 'scan-me-bottom',  label: 'Scan me — bottom' },
+    { value: 'rounded',         label: 'Rounded border' },
+    { value: 'banner-bottom',   label: 'Banner' },
+    { value: 'tag-notch',       label: 'Tag with notch' },
+    { value: 'pill-icon',       label: 'Pill with icon' },
+    { value: 'arrow-br',        label: 'Cursive arrow — BR' },
+    { value: 'arrow-bl',        label: 'Cursive arrow — BL' },
+    { value: 'arrow-tr',        label: 'Cursive arrow — TR' },
+    { value: 'arrow-tl',        label: 'Cursive arrow — TL' },
+]
+
+// Font families for the frame label. Cursive options are also used by the
+// "Scan me" text in the arrow variants.
+const frameFontFamilies = [
+    { value: 'system-ui',                                                        label: 'Sans-serif (System)' },
+    { value: '"Helvetica Neue", Helvetica, Arial, sans-serif',                   label: 'Helvetica' },
+    { value: 'Georgia, "Times New Roman", serif',                                label: 'Serif (Georgia)' },
+    { value: '"Courier New", Courier, monospace',                                label: 'Monospace' },
+    { value: '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif',    label: 'Impact' },
+    { value: '"Brush Script MT", "Lucida Handwriting", cursive',                 label: 'Cursive (Brush)' },
+    { value: '"Comic Sans MS", "Chalkboard SE", cursive',                        label: 'Comic Sans' },
+    { value: '"Trebuchet MS", sans-serif',                                       label: 'Trebuchet' },
+    { value: '"Verdana", Geneva, sans-serif',                                    label: 'Verdana' },
+]
+
+// Curated icon set from lucide (well-known open icon library).
+const frameIcons = [
+    { value: 'none',        label: 'No icon' },
+    { value: 'Play',        label: 'Play' },
+    { value: 'Camera',      label: 'Camera' },
+    { value: 'ShoppingBag', label: 'Shopping bag' },
+    { value: 'ShoppingCart',label: 'Shopping cart' },
+    { value: 'Heart',       label: 'Heart' },
+    { value: 'Star',        label: 'Star' },
+    { value: 'Globe',       label: 'Globe' },
+    { value: 'Wifi',        label: 'WiFi' },
+    { value: 'Phone',       label: 'Phone' },
+    { value: 'Mail',        label: 'Mail' },
+    { value: 'MapPin',      label: 'Map pin' },
+    { value: 'Download',    label: 'Download' },
+    { value: 'Gift',        label: 'Gift' },
+    { value: 'Coffee',      label: 'Coffee' },
+    { value: 'Music',       label: 'Music' },
+    { value: 'Video',       label: 'Video' },
+    { value: 'QrCode',      label: 'QR code' },
+    { value: 'Smartphone',  label: 'Smartphone' },
+    { value: 'Instagram',   label: 'Instagram' },
+    { value: 'Youtube',     label: 'YouTube' },
+    { value: 'Facebook',    label: 'Facebook' },
+]
 
 function buildMailto(e) {
     let uri = `mailto:${e.to || ''}`
@@ -898,6 +961,77 @@ const downloadQr = async (ext) => {
                                 </button>
                             </div>
                         </div>
+
+                        <!-- Frame -->
+                        <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Frame</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <button v-for="f in frameStyles" :key="f.value" type="button"
+                                    @click="form.frame_style = f.value"
+                                    :title="f.label"
+                                    :class="[form.frame_style === f.value ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-900/40' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300']"
+                                    class="aspect-square bg-white dark:bg-gray-950 border rounded-lg flex items-center justify-center transition-colors overflow-hidden">
+                                    <div class="qf-thumb">
+                                        <QrFrame
+                                            :data="'QRLAB'"
+                                            :size="60"
+                                            :frame-style="f.value"
+                                            :frame-color="form.frame_color"
+                                            :frame-label-color="form.frame_label_color"
+                                            :frame-text="'SCAN'"
+                                            :frame-font-size="8"
+                                            :frame-font-family="form.frame_font_family"
+                                            :frame-icon="f.value === 'pill-icon' ? (form.frame_icon === 'none' ? 'Play' : form.frame_icon) : 'none'" />
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="mt-3 grid grid-cols-2 gap-3" v-if="form.frame_style !== 'none'">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Border color</label>
+                                    <div class="flex items-center gap-2">
+                                        <input v-model="form.frame_color" type="color" class="w-9 h-9 rounded-lg border border-gray-300 dark:border-gray-700 cursor-pointer" />
+                                        <input v-model="form.frame_color" type="text" class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label color</label>
+                                    <div class="flex items-center gap-2">
+                                        <input v-model="form.frame_label_color" type="color" class="w-9 h-9 rounded-lg border border-gray-300 dark:border-gray-700 cursor-pointer" />
+                                        <input v-model="form.frame_label_color" type="text" class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm" />
+                                    </div>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label text</label>
+                                    <input v-model="form.frame_text" type="text" maxlength="24"
+                                        class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Font size ({{ form.frame_font_size }}px)</label>
+                                    <div class="h-[38px] flex items-center">
+                                        <input v-model.number="form.frame_font_size" type="range" min="10" max="28" class="w-full" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Font family</label>
+                                    <select v-model="form.frame_font_family"
+                                        :style="{ fontFamily: form.frame_font_family }"
+                                        class="w-full h-[38px] px-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm">
+                                        <option v-for="f in frameFontFamilies" :key="f.value" :value="f.value" :style="{ fontFamily: f.value }">{{ f.label }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Label distance ({{ form.frame_label_gap }}px)</label>
+                                    <input v-model.number="form.frame_label_gap" type="range" min="0" max="40" class="w-full" />
+                                </div>
+                                <div v-if="form.frame_style === 'pill-icon'" class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Icon</label>
+                                    <select v-model="form.frame_icon"
+                                        class="w-full h-[38px] px-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm">
+                                        <option v-for="i in frameIcons" :key="i.value" :value="i.value">{{ i.label }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -943,8 +1077,29 @@ const downloadQr = async (ext) => {
                         <!-- Header text -->
                         <p v-if="form.header_text" :style="headerStyle">{{ form.header_text }}</p>
 
-                        <div class="flex justify-center">
-                            <QrPreview
+                        <div class="qf-preview-stage">
+                            <QrFrame v-if="form.frame_style && form.frame_style !== 'none'"
+                                :data="qrContent"
+                                :size="180"
+                                :margin="form.margin"
+                                :dotsColor="form.foreground_color"
+                                :backgroundColor="form.background_color"
+                                :dotStyle="form.dot_style"
+                                :cornerSquareStyle="form.corner_square_style"
+                                :cornerDotStyle="form.corner_dot_style"
+                                :errorCorrectionLevel="form.error_correction"
+                                :logoUrl="logoPreview"
+                                :logoSize="form.logo_size / 100"
+                                :frame-style="form.frame_style"
+                                :frame-color="form.frame_color"
+                                :frame-label-color="form.frame_label_color"
+                                :frame-text="form.frame_text"
+                                :frame-font-size="form.frame_font_size"
+                                :frame-font-family="form.frame_font_family"
+                                :frame-label-gap="form.frame_label_gap"
+                                :frame-icon="form.frame_icon"
+                            />
+                            <QrPreview v-else
                                 ref="qrPreviewRef"
                                 :data="qrContent"
                                 :width="280"
@@ -1044,3 +1199,29 @@ const downloadQr = async (ext) => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+/* Preview stage: centre the frame inside the sidebar preview card. */
+.qf-preview-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 240px;
+}
+.qf-preview-stage > :deep(*) {
+    flex: 0 0 auto;
+}
+
+/* Thumbnail: scale the frame so every style (including the wide arrow
+   variants) fits the aspect-square button with equal margins. Transform
+   doesn't affect flex layout, so flex centering still works. */
+.qf-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0.75);
+    transform-origin: center center;
+    line-height: 0;
+}
+</style>
