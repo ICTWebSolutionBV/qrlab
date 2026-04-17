@@ -289,7 +289,7 @@ class QrCodeController extends Controller
     {
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['integer'],
+            'ids.*' => ['string'],
         ]);
 
         $user = $request->user();

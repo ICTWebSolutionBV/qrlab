@@ -51,6 +51,10 @@ const bulkDelete = () => {
     router.post(route('qr.bulk-destroy'), { ids: Array.from(selectedIds.value) }, {
         preserveScroll: true,
         onSuccess: () => { clearSelection(); bulkConfirmOpen.value = false },
+        onError: (errors) => {
+            console.error('Bulk delete failed', errors)
+            bulkConfirmOpen.value = false
+        },
     })
 }
 
