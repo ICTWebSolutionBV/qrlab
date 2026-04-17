@@ -193,34 +193,34 @@ const fmtDate = (iso) => {
                 class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 hover:border-primary-300 dark:hover:border-primary-700 transition-colors group">
                 <div class="flex items-start justify-between mb-3 gap-2">
                     <div class="min-w-0">
-                        <h3 class="font-semibold text-lg text-gray-900 dark:text-white truncate">{{ qr.name }}</h3>
-                        <p class="text-base text-gray-500 dark:text-gray-400 truncate">{{ subtitle(qr) }}</p>
+                        <h3 class="font-semibold text-base text-gray-900 dark:text-white truncate">{{ qr.name }}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ subtitle(qr) }}</p>
                     </div>
                     <div class="flex flex-col items-end gap-1 shrink-0">
-                        <span class="text-sm px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium">
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium">
                             {{ typeLabel(qr) }}
                         </span>
-                        <span v-if="qr.tracking_enabled" class="text-sm text-gray-400 dark:text-gray-500">
+                        <span v-if="qr.tracking_enabled" class="text-xs text-gray-400 dark:text-gray-500">
                             {{ qr.scans_count }} scan{{ qr.scans_count === 1 ? '' : 's' }}
                         </span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 mt-3">
                     <button @click="showQr(qr)" title="Show QR"
-                        class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        class="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                         Show
                     </button>
                     <Link :href="route('qr.edit', qr.id)" title="Edit"
-                        class="p-2.5 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        class="p-2 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     </Link>
                     <Link v-if="qr.tracking_enabled" :href="route('qr.analytics', qr.id)" title="View scan analytics"
-                        class="p-2.5 text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-md hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors">
+                        class="p-2 text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-md hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M8 17V9m4 8V5m4 12v-6"/></svg>
                     </Link>
                     <button @click="confirmDelete(qr)" title="Delete QR"
-                        class="p-2.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                        class="p-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>
