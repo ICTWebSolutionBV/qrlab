@@ -1,36 +1,76 @@
 # QR Lab
 
+[![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen?style=flat-square)](CHANGELOG.md)
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-A self-hosted WiFi QR code generator built with Laravel and Vue.js. Create styled QR codes with custom colors, dot styles, logos, and export in multiple formats. Invite-only user management with passkey authentication.
+A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR codes of many types, track scans with geolocation analytics, manage users with invite-only access, and monitor platform usage from a global super-admin dashboard.
 
 > **Disclaimer:** This software is provided "as is", without warranty of any kind. Use at your own risk. The authors are not responsible for any data loss, security breaches, or other damages resulting from the use of this software. Always review the code and configure proper security measures before deploying to production.
 
 ## Features
 
-- **WiFi QR Codes** - Generate QR codes for WiFi networks with SSID, password, and encryption type (WPA/WPA2/WPA3/WEP).
-- **Live Preview** - Instant client-side QR preview that updates as you type, powered by qr-code-styling.
-- **Custom Styling** - Choose dot styles (square, dots, rounded, classy), corner styles, foreground/background colors, and error correction levels.
-- **Logo Embedding** - Upload a logo to embed in the center of your QR code with adjustable size.
-- **Text Labels** - Add header and footer text above/below the QR code.
-- **Multiple Export Formats** - Download as PNG, JPG, or SVG from the browser. Server-side export supports PNG, SVG, and EPS.
-- **Light & Dark Mode** - Automatic theme switching based on system preference, with manual toggle in profile settings.
-- **Save & Edit** - Save QR codes to your account and modify them at any time.
-- **Invite-Only Access** - No public registration. Admins invite users via secure, single-use invite links.
-- **Passkey Authentication** - Sign in with Face ID, Touch ID, or Windows Hello via WebAuthn.
-- **Admin Panel** - User management and invite administration.
-- **Responsive Design** - Fully responsive layout with sidebar navigation on desktop and bottom nav on mobile.
+### QR code generation
+- **Multiple QR types** — WiFi, URL, Phone, Email (mailto:), and vCard contact cards.
+- **Live preview** — Instant client-side preview that updates as you type, powered by qr-code-styling.
+- **Custom styling** — Dot styles (square, dots, rounded, classy), corner styles, foreground/background colors, and error correction levels.
+- **Logo embedding** — Upload a logo per QR code (stored privately and served through an authenticated route). Logos are automatically cleaned up when a QR code is deleted.
+- **Text labels** — Add header and footer text with fonts, markup, and custom per-side margins.
+- **Font picker** — Choose from bundled web fonts for label text.
+- **WiFi info display** — Optional credential panel rendered below WiFi QR codes.
+- **Multiple export formats** — PNG, JPG, and SVG from the browser; PNG, SVG, and EPS from the server.
+- **URL smart-save** — Schemeless URLs automatically prepended with `https://`.
+
+### Scan tracking & analytics
+- **Short-link redirects** — Every URL/trackable QR code gets a short tracking URL (`/r/{code}`).
+- **Per-QR analytics dashboard** — Timeline chart, totals, top referrers, and device/country breakdowns.
+- **Location tracking** — Optional IP-based geolocation captured per scan.
+- **Opt-in tracking toggle** — Always visible; disabled for non-trackable types like WiFi/vCard.
+- **Global platform stats** — Super admins see network-wide totals, 30-day trend, top QR codes, and per-user usage.
+
+### Dashboard & organization
+- **Grid & list views** — Toggle between fluid card grid and compact table; choice persisted locally.
+- **Filters** — Search, filter by type and tracking state, sortable columns.
+- **Bulk actions** — Select multiple QR codes in list view and delete in one action.
+- **Fluid card layout** — Auto-fill grid scales smoothly from 4 → 3 → 2 → 1 columns.
+- **Show QR modal** — Preview any saved QR code without leaving the dashboard.
+
+### Accounts & authentication
+- **Invite-only access** — No public registration. Admins invite users via secure, single-use invite links (HTML email included).
+- **Two-step signup wizard** — Invited users set credentials then immediately enroll in 2FA.
+- **Mandatory two-factor authentication** — Supports TOTP authenticator apps, email codes, and WebAuthn passkeys (Face ID / Touch ID / Windows Hello). At least one method is required.
+- **Skip 2FA in local dev** — Set `TWO_FACTOR_ENABLED=false` in `.env` for local iteration. Defaults to enforced in any non-local environment.
+- **Password reset** — Standard email-based reset, plus admin-initiated reset links.
+- **Admin-initiated 2FA reset** — Force a user to re-enroll on next sign-in.
+
+### User roles
+- **Three-tier role model** — `user`, `admin`, `super_admin`.
+- **Admins** — Manage users, send invites, reset passwords, reset 2FA.
+- **Super admins** — All admin capabilities plus platform-wide stats dashboard and the ability to grant/revoke the `super_admin` role. Regular admins cannot delete or demote super admins.
+- **Artisan promotion** — `php artisan user:promote <email> <user|admin|super_admin>`.
+
+### Profile & preferences
+- **Theme** — Light, dark, or auto (follows system). Persisted per user.
+- **Timezone** — Choose from 24 common IANA zones; defaults to `Europe/Amsterdam`.
+- **Date/time format** — Configurable date format (DD-MM-YYYY, MM/DD/YYYY, etc.) and 24h/12h time with seconds. Shared `Intl.DateTimeFormat`-based formatter is used across the app.
+- **Passkey management** — Register and revoke passkeys from the profile page.
+
+### UI / UX
+- **Light & dark mode** — Full coverage across every page.
+- **Responsive design** — Sidebar navigation on desktop, bottom tab bar on mobile.
+- **Flash toasts** — Non-blocking success/error notifications.
+- **Styled invite email** — Matches app branding (dark background, logo, dark CTA button).
 
 ## Tech Stack
 
 - **Backend**: Laravel 13, PHP 8.3+
 - **Frontend**: Vue 3, Inertia.js v3, Tailwind CSS 4
-- **QR Generation**: qr-code-styling (client-side preview/download), endroid/qr-code v6 (server-side export)
-- **Authentication**: spatie/laravel-passkeys (WebAuthn)
-- **Database**: MySQL/PostgreSQL/SQLite
+- **QR Generation**: qr-code-styling (client-side), endroid/qr-code v6 (server-side)
+- **Charts**: Chart.js + vue-chartjs
+- **Authentication**: spatie/laravel-passkeys (WebAuthn), TOTP, email OTP
+- **Database**: MySQL / PostgreSQL / SQLite
 
 ## Installation
 
@@ -70,6 +110,9 @@ touch database/database.sqlite
 # DB_USERNAME=root
 # DB_PASSWORD=
 
+# Optional: skip 2FA enforcement locally
+# TWO_FACTOR_ENABLED=false
+
 # Run migrations and seed admin user
 php artisan migrate --seed
 
@@ -82,6 +125,14 @@ npm run dev
 ```
 
 The default admin account is `admin@qrlab.test` / `password`. Change the password after first login.
+
+### Promoting a super admin
+
+```bash
+php artisan user:promote you@example.com super_admin
+```
+
+The super admin gets a **Platform Stats** link in the sidebar and can grant the super-admin role to other users from the Admin → Users page.
 
 ## Deploying with Ploi
 
@@ -136,6 +187,9 @@ DB_PORT=3306
 DB_DATABASE=qrlab
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_db_password
+
+# Leave unset (or true) in production to enforce 2FA
+# TWO_FACTOR_ENABLED=true
 ```
 
 ### 5. Run Migrations & Seed Admin
@@ -147,7 +201,11 @@ cd {SITE_DIRECTORY}
 php artisan migrate --seed
 ```
 
-This creates the default admin user (`admin@qrlab.test` / `password`). Change the credentials after first login.
+This creates the default admin user (`admin@qrlab.test` / `password`). Change the credentials after first login, and promote yourself to `super_admin` if desired:
+
+```bash
+php artisan user:promote you@example.com super_admin
+```
 
 ### 6. SSL
 
@@ -161,6 +219,14 @@ If not already created by the deploy script:
 cd {SITE_DIRECTORY}
 php artisan storage:link
 ```
+
+## Versioning
+
+QR Lab follows [Semantic Versioning](https://semver.org/). The current release is **v1.0.0**. Subsequent changes are published as `v1.x.x` tags and tracked in [CHANGELOG.md](CHANGELOG.md):
+
+- **Patch (`1.0.x`)** — Bug fixes and small tweaks.
+- **Minor (`1.x.0`)** — New features, backwards-compatible.
+- **Major (`x.0.0`)** — Breaking changes.
 
 ## License
 
