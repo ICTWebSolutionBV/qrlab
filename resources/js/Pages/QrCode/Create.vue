@@ -1004,15 +1004,21 @@ const downloadQr = async (ext) => {
                                 class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition" />
                             <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
                         </div>
-                        <div v-if="form.type === 'url'" class="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3">
-                            <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Track scans</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">QR redirects via a tracking link</p>
+                        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Track scans</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        <template v-if="form.type === 'url'">QR redirects through a short link so scans can be counted</template>
+                                        <template v-else>Only available for URL QR codes — other types encode data directly on the device</template>
+                                    </p>
+                                </div>
+                                <button type="button" @click="form.type === 'url' && (form.tracking_enabled = !form.tracking_enabled)"
+                                    :disabled="form.type !== 'url'"
+                                    :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.type !== 'url' ? 'bg-gray-200 dark:bg-gray-700 opacity-50 cursor-not-allowed' : form.tracking_enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                    <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled && form.type === 'url' ? 'translate-x-5' : 'translate-x-0']" />
+                                </button>
                             </div>
-                            <button type="button" @click="form.tracking_enabled = !form.tracking_enabled"
-                                :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.tracking_enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
-                                <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled ? 'translate-x-5' : 'translate-x-0']" />
-                            </button>
                         </div>
                         <button @click="submit" :disabled="form.processing || !form.name || (form.type === 'wifi' ? !form.ssid : form.type === 'vcard' ? !form.vcard_data.first_name && !form.vcard_data.last_name : form.type === 'email' ? !form.email_data.to.trim() : !form.url.trim())"
                             class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 text-sm">

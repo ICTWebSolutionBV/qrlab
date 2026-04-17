@@ -509,22 +509,28 @@ const downloadQr = async (ext) => {
                             </div>
                         </template>
 
-                        <!-- URL tracking block -->
-                        <template v-if="form.type === 'url'">
-                            <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                        <!-- Scan tracking block (always visible, disabled when not URL) -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
+                            <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">Track scans</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">QR redirects via a tracking link</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        <template v-if="form.type === 'url'">QR redirects through a short link so scans can be counted</template>
+                                        <template v-else>Only available for URL QR codes — other types encode data directly on the device</template>
+                                    </p>
                                 </div>
-                                <button type="button" @click="form.tracking_enabled = !form.tracking_enabled"
-                                    :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.tracking_enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
-                                    <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled ? 'translate-x-5' : 'translate-x-0']" />
+                                <button type="button" @click="form.type === 'url' && (form.tracking_enabled = !form.tracking_enabled)"
+                                    :disabled="form.type !== 'url'"
+                                    :class="['relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none', form.type !== 'url' ? 'bg-gray-200 dark:bg-gray-700 opacity-50 cursor-not-allowed' : form.tracking_enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700']">
+                                    <span :class="['pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', form.tracking_enabled && form.type === 'url' ? 'translate-x-5' : 'translate-x-0']" />
                                 </button>
                             </div>
+                        </div>
+                        <template v-if="form.type === 'url' && form.tracking_enabled">
                             <div v-if="trackingUrl" class="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 font-mono break-all">
                                 {{ trackingUrl }}
                             </div>
-                            <Link v-if="form.tracking_enabled && props.qrCode.short_code" :href="route('qr.analytics', props.qrCode.id)"
+                            <Link v-if="props.qrCode.short_code" :href="route('qr.analytics', props.qrCode.id)"
                                 class="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-xl hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
                                 View scan analytics
