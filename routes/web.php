@@ -73,6 +73,7 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
     // QR Codes (save, edit, delete require auth)
     Route::post('/qr', [QrCodeController::class, 'store'])->name('qr.store');
     Route::get('/qr/{qrCode}/edit', [QrCodeController::class, 'edit'])->name('qr.edit');
+    Route::get('/qr/{qrCode}/analytics', [QrCodeController::class, 'analytics'])->name('qr.analytics');
     Route::put('/qr/{qrCode}', [QrCodeController::class, 'update'])->name('qr.update');
     Route::delete('/qr/{qrCode}', [QrCodeController::class, 'destroy'])->name('qr.destroy');
     Route::get('/qr/{qrCode}/export/{format}', [QrExportController::class, 'download'])->name('qr.export');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\QrCode;
 use App\Models\QrCodeScan;
+use App\Services\QrScanAnalyticsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -279,6 +280,31 @@ class QrCodeController extends Controller
         $qrCode->delete();
 
         return redirect()->route('dashboard')->with('success', 'QR code deleted.');
+    }
+
+    public function analytics(QrCode $qrCode, Request $request, QrScanAnalyticsService $analytics)
+    {
+        if ($qrCode->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
+            abort(403);
+        }
+
+        if (!$qrCode->tracking_enabled) {
+            return redirect()->route('qr.edit', $qrCode)
+                ->with('error', 'Scan tracking is disabled for this QR code. Enable it to see analytics.');
+        }
+
+        return Inertia::render('QrCode/Analytics', [
+            'qrCode' => [
+                'id' => $qrCode->id,
+                'name' => $qrCode->name,
+                'type' => $qrCode->type,
+                'short_code' => $qrCode->short_code,
+                'tracking_enabled' => $qrCode->tracking_enabled,
+                'created_at' => $qrCode->created_at?->toISOString(),
+            ],
+            'analytics' => $analytics->forQrCode($qrCode),
+            'appUrl' => config('app.url'),
+        ]);
     }
 
     public function track(string $shortCode)
