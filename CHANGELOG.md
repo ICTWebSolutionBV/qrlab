@@ -17,7 +17,12 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- Screenshots section in the README covering QR generator, dashboard (grid + list), per-QR analytics, super-admin stats, user management, profile, and login.
+- `docs/screenshots/` directory scaffold for README assets.
+
+### Changed
+- Repository made public on GitHub.
 
 ## [1.0.0] — 2026-04-17
 

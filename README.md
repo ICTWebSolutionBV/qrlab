@@ -10,6 +10,38 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
 
 > **Disclaimer:** This software is provided "as is", without warranty of any kind. Use at your own risk. The authors are not responsible for any data loss, security breaches, or other damages resulting from the use of this software. Always review the code and configure proper security measures before deploying to production.
 
+## Screenshots
+
+### QR generator & dashboard
+
+<p align="center">
+  <img src="docs/screenshots/qr-generator.png" alt="Public QR generator with live preview" width="48%" />
+  &nbsp;
+  <img src="docs/screenshots/dashboard-grid.png" alt="Dashboard grid view" width="48%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/dashboard-list.png" alt="Dashboard list view with bulk select" width="48%" />
+  &nbsp;
+  <img src="docs/screenshots/qr-analytics.png" alt="Per-QR analytics dashboard" width="48%" />
+</p>
+
+### Administration
+
+<p align="center">
+  <img src="docs/screenshots/admin-stats.png" alt="Super-admin platform stats dashboard" width="48%" />
+  &nbsp;
+  <img src="docs/screenshots/admin-users.png" alt="Admin users & invites" width="48%" />
+</p>
+
+### Profile & authentication
+
+<p align="center">
+  <img src="docs/screenshots/profile.png" alt="Profile settings with theme and date/time preferences" width="48%" />
+  &nbsp;
+  <img src="docs/screenshots/login.png" alt="Login page with passkey option" width="48%" />
+</p>
+
 ## Features
 
 ### QR code generation
