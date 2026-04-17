@@ -17,9 +17,13 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [1.0.1] — 2026-04-17
+
 ### Added
 - Screenshots section in the README covering QR generator, dashboard (grid + list), per-QR analytics, super-admin stats, user management, profile, and login.
-- `docs/screenshots/` directory scaffold for README assets.
+- Captured screenshots under `docs/screenshots/`.
 
 ### Changed
 - Repository made public on GitHub.
@@ -90,5 +94,6 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ICTWebSolutionBV/qrlab/releases/tag/v1.0.0
