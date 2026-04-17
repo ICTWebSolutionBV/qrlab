@@ -10,7 +10,8 @@ const flashMessage = ref({ type: '', text: '' })
 
 const auth = computed(() => page.props.auth)
 const user = computed(() => auth.value?.user)
-const isAdmin = computed(() => user.value?.role === 'admin')
+const isAdmin = computed(() => user.value?.role === 'admin' || user.value?.role === 'super_admin')
+const isSuperAdmin = computed(() => user.value?.role === 'super_admin')
 const isGuest = computed(() => !user.value)
 
 const flash = computed(() => page.props.flash)
@@ -88,6 +89,13 @@ watch(() => user.value?.theme_preference, (pref) => {
                             @click="showSidebar = false">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                             Users
+                        </Link>
+                        <Link v-if="isSuperAdmin" :href="route('admin.stats')"
+                            :class="[page.url.startsWith('/admin/stats') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800']"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                            @click="showSidebar = false">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M8 17V9m4 8V5m4 12v-6"/></svg>
+                            Platform Stats
                         </Link>
                     </div>
                 </template>

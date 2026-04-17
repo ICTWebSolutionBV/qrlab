@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             '2fa.required' => \App\Http\Middleware\RequireTwoFactorSetup::class,
         ]);
     })

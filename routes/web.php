@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasskeyController;
+use App\Http\Controllers\Admin\StatsController as AdminStatsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\QrExportController;
@@ -96,6 +97,11 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
     Route::post('/profile/two-factor/email/disable', [TwoFactorSetupController::class, 'emailDisable'])->name('two-factor.email.disable');
 
     // Admin routes
+    // Super admin only — global stats/usage dashboard
+    Route::middleware('super_admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/stats', [AdminStatsController::class, 'index'])->name('stats');
+    });
+
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', AdminUserController::class)->except(['show']);
         Route::post('/users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.password-reset');
