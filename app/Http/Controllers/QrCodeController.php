@@ -20,6 +20,7 @@ class QrCodeController extends Controller
     public function store(Request $request)
     {
         $type = $request->input('type', 'wifi');
+        $this->normalizeUrlFields($request, $type);
 
         $rules = [
             'type' => ['required', 'in:wifi,url,phone,vcard,email'],
@@ -156,6 +157,7 @@ class QrCodeController extends Controller
         }
 
         $type = $request->input('type', $qrCode->type ?? 'wifi');
+        $this->normalizeUrlFields($request, $type);
 
         $rules = [
             'type' => ['required', 'in:wifi,url,phone,vcard,email'],
@@ -324,6 +326,31 @@ class QrCodeController extends Controller
         ]);
 
         return redirect($qrCode->url);
+    }
+
+    /**
+     * If the user entered a URL without a scheme (e.g. `example.com`), prepend
+     * `https://` so Laravel's `url` validator accepts it and we save a working
+     * link. Applied to the main `url` field on URL-type QRs and the
+     * `vcard_data.website` field on vCard QRs.
+     */
+    private function normalizeUrlFields(Request $request, string $type): void
+    {
+        if ($type === 'url') {
+            $url = trim((string) $request->input('url', ''));
+            if ($url !== '' && !preg_match('~^[a-z][a-z0-9+.\-]*://~i', $url)) {
+                $request->merge(['url' => 'https://' . ltrim($url, '/')]);
+            }
+        }
+
+        if ($type === 'vcard') {
+            $website = trim((string) $request->input('vcard_data.website', ''));
+            if ($website !== '' && !preg_match('~^[a-z][a-z0-9+.\-]*://~i', $website)) {
+                $vcard = $request->input('vcard_data', []);
+                $vcard['website'] = 'https://' . ltrim($website, '/');
+                $request->merge(['vcard_data' => $vcard]);
+            }
+        }
     }
 
     private function generateShortCode(): string
