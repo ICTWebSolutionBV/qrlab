@@ -13,6 +13,10 @@ class QrCodeScan extends Model
         'ip_address',
         'user_agent',
         'referer',
+        'country',
+        'country_code',
+        'region',
+        'city',
     ];
 
     protected function casts(): array

@@ -102,10 +102,26 @@ const pct = (count, total) => total > 0 ? Math.round((count / total) * 100) : 0
 
 const totalScans = computed(() => props.analytics.totals.all_time || 0)
 
+const fmtDate = (iso) => {
+    if (!iso) return '—'
+    const d = new Date(iso)
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
 const fmtTime = (iso) => {
     if (!iso) return '—'
     const d = new Date(iso)
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
+
+// Turn ISO country code (e.g. "US") into flag emoji
+const flag = (code) => {
+    if (!code || code.length !== 2) return '🌐'
+    const base = 0x1F1E6
+    return String.fromCodePoint(
+        base + (code.toUpperCase().charCodeAt(0) - 65),
+        base + (code.toUpperCase().charCodeAt(1) - 65)
+    )
 }
 </script>
 
@@ -177,6 +193,44 @@ const fmtTime = (iso) => {
             </div>
         </div>
 
+        <!-- Countries + Cities -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Top countries</h2>
+                <div v-if="!analytics.countries.length" class="text-sm text-gray-500 dark:text-gray-400">No data yet.</div>
+                <div v-else class="space-y-2.5">
+                    <div v-for="row in analytics.countries" :key="(row.code || 'x') + row.label">
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-gray-700 dark:text-gray-300 inline-flex items-center gap-1.5">
+                                <span class="text-base leading-none">{{ flag(row.code) }}</span>
+                                {{ row.label }}
+                            </span>
+                            <span class="text-gray-500 dark:text-gray-400">{{ fmt(row.count) }} · {{ pct(row.count, totalScans) }}%</span>
+                        </div>
+                        <div class="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-500 rounded-full" :style="{ width: pct(row.count, totalScans) + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Top cities</h2>
+                <div v-if="!analytics.cities.length" class="text-sm text-gray-500 dark:text-gray-400">No city data yet.</div>
+                <div v-else class="space-y-2.5">
+                    <div v-for="row in analytics.cities" :key="row.label">
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-gray-700 dark:text-gray-300">{{ row.label }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">{{ fmt(row.count) }} · {{ pct(row.count, totalScans) }}%</span>
+                        </div>
+                        <div class="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-rose-500 rounded-full" :style="{ width: pct(row.count, totalScans) + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <!-- Browsers -->
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
@@ -225,7 +279,9 @@ const fmtTime = (iso) => {
                 <table class="w-full text-sm">
                     <thead class="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50">
                         <tr>
-                            <th class="text-left px-5 py-2.5 font-medium">When</th>
+                            <th class="text-left px-5 py-2.5 font-medium">Date</th>
+                            <th class="text-left px-5 py-2.5 font-medium">Time</th>
+                            <th class="text-left px-5 py-2.5 font-medium">Location</th>
                             <th class="text-left px-5 py-2.5 font-medium">Device</th>
                             <th class="text-left px-5 py-2.5 font-medium">Browser</th>
                             <th class="text-left px-5 py-2.5 font-medium">OS</th>
@@ -234,7 +290,14 @@ const fmtTime = (iso) => {
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                         <tr v-for="row in analytics.recent" :key="row.id" class="text-gray-700 dark:text-gray-300">
-                            <td class="px-5 py-2.5 whitespace-nowrap">{{ fmtTime(row.scanned_at) }}</td>
+                            <td class="px-5 py-2.5 whitespace-nowrap">{{ fmtDate(row.scanned_at) }}</td>
+                            <td class="px-5 py-2.5 whitespace-nowrap text-gray-500 dark:text-gray-400">{{ fmtTime(row.scanned_at) }}</td>
+                            <td class="px-5 py-2.5 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <span class="text-base leading-none">{{ flag(row.country_code) }}</span>
+                                    <span>{{ row.location }}</span>
+                                </span>
+                            </td>
                             <td class="px-5 py-2.5">{{ row.device }}</td>
                             <td class="px-5 py-2.5">{{ row.browser }}</td>
                             <td class="px-5 py-2.5">{{ row.os }}</td>

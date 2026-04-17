@@ -76,21 +76,41 @@ class QrScanAnalyticsService
         }
 
         // Parse UAs for browser / device / os breakdowns
-        $uas = (clone $base)->pluck('user_agent');
+        $scanMeta = (clone $base)->get(['user_agent', 'country', 'country_code', 'city']);
 
         $browsers = [];
         $devices = [];
         $os = [];
-        foreach ($uas as $ua) {
-            $parsed = $this->parseUserAgent((string) $ua);
+        $countries = [];
+        $cities = [];
+        foreach ($scanMeta as $s) {
+            $parsed = $this->parseUserAgent((string) $s->user_agent);
             $browsers[$parsed['browser']] = ($browsers[$parsed['browser']] ?? 0) + 1;
             $devices[$parsed['device']] = ($devices[$parsed['device']] ?? 0) + 1;
             $os[$parsed['os']] = ($os[$parsed['os']] ?? 0) + 1;
+
+            $countryLabel = $s->country ?: 'Unknown';
+            $countryKey = ($s->country_code ?: '--') . '|' . $countryLabel;
+            if (!isset($countries[$countryKey])) {
+                $countries[$countryKey] = [
+                    'label' => $countryLabel,
+                    'code' => $s->country_code,
+                    'count' => 0,
+                ];
+            }
+            $countries[$countryKey]['count']++;
+
+            if ($s->city) {
+                $cityLabel = $s->city . ($s->country ? ', ' . $s->country : '');
+                $cities[$cityLabel] = ($cities[$cityLabel] ?? 0) + 1;
+            }
         }
 
         arsort($browsers);
         arsort($devices);
         arsort($os);
+        usort($countries, fn ($a, $b) => $b['count'] <=> $a['count']);
+        arsort($cities);
 
         // Recent scans (last 20)
         $recent = (clone $base)
@@ -99,6 +119,9 @@ class QrScanAnalyticsService
             ->get()
             ->map(function (QrCodeScan $s) {
                 $parsed = $this->parseUserAgent((string) $s->user_agent);
+                $location = $s->city && $s->country
+                    ? $s->city . ', ' . $s->country
+                    : ($s->country ?: 'Unknown');
                 return [
                     'id' => $s->id,
                     'scanned_at' => $s->scanned_at?->toISOString(),
@@ -106,10 +129,20 @@ class QrScanAnalyticsService
                     'browser' => $parsed['browser'],
                     'device' => $parsed['device'],
                     'os' => $parsed['os'],
+                    'location' => $location,
+                    'country_code' => $s->country_code,
                     'referer' => $s->referer,
                 ];
             })
             ->all();
+
+        // Trim country list to top N + "Other", preserving the flag code
+        $topCountries = array_slice($countries, 0, 6);
+        $otherCount = 0;
+        foreach (array_slice($countries, 6) as $c) $otherCount += $c['count'];
+        if ($otherCount > 0) {
+            $topCountries[] = ['label' => 'Other', 'code' => null, 'count' => $otherCount];
+        }
 
         return [
             'totals' => $totals,
@@ -118,6 +151,8 @@ class QrScanAnalyticsService
             'browsers' => $this->toBreakdown($browsers, 6),
             'devices' => $this->toBreakdown($devices, 6),
             'os' => $this->toBreakdown($os, 6),
+            'countries' => $topCountries,
+            'cities' => $this->toBreakdown($cities, 6),
             'recent' => $recent,
         ];
     }

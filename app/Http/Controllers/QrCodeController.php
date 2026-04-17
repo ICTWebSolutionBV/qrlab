@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\QrCode;
 use App\Models\QrCodeScan;
+use App\Services\IpGeolocationService;
 use App\Services\QrScanAnalyticsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -317,12 +318,19 @@ class QrCodeController extends Controller
             abort(404);
         }
 
+        $ip = request()->ip();
+        $geo = app(IpGeolocationService::class)->lookup($ip);
+
         QrCodeScan::create([
             'qr_code_id' => $qrCode->id,
             'scanned_at' => now(),
-            'ip_address' => request()->ip(),
+            'ip_address' => $ip,
             'user_agent' => request()->userAgent(),
             'referer' => request()->header('referer'),
+            'country' => $geo['country'],
+            'country_code' => $geo['country_code'],
+            'region' => $geo['region'],
+            'city' => $geo['city'],
         ]);
 
         return redirect($qrCode->url);
