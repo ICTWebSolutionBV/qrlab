@@ -45,6 +45,12 @@ const revokeInvite = (id) => {
     router.delete(route('admin.invites.destroy', id))
 }
 
+const resendInvite = (invite) => {
+    if (confirm(`Resend invite to ${invite.email}? A fresh link with a new 72-hour expiry will be emailed.`)) {
+        router.post(route('admin.invites.resend', invite.id), {}, { preserveScroll: true })
+    }
+}
+
 const sendPasswordReset = (user) => {
     if (confirm(`Send a password reset email to ${user.email}?`)) {
         router.post(route('admin.users.password-reset', user.id), {}, { preserveScroll: true })
@@ -172,7 +178,10 @@ const twoFactorSummary = (user) => {
                             <span v-else class="text-xs text-yellow-600">Pending</span>
                         </td>
                         <td class="px-4 py-3 text-right">
-                            <button v-if="invite.is_valid" @click="revokeInvite(invite.id)" class="text-red-500 hover:text-red-700 text-xs font-medium">Revoke</button>
+                            <div class="flex items-center justify-end gap-3">
+                                <button v-if="!invite.used_at && !invite.is_valid" @click="resendInvite(invite)" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium">Resend</button>
+                                <button v-if="invite.is_valid" @click="revokeInvite(invite.id)" class="text-red-500 hover:text-red-700 text-xs font-medium">Revoke</button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

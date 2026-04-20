@@ -179,6 +179,29 @@ class UserController extends Controller
         return back()->with('success', 'Invite revoked.');
     }
 
+    public function resendInvite(Request $request, UserInvite $invite)
+    {
+        if ($invite->isUsed()) {
+            return back()->with('error', 'Invite has already been used.');
+        }
+
+        $data = $request->validate([
+            'expires_hours' => ['nullable', 'integer', 'min:1', 'max:720'],
+        ]);
+
+        $hours = $data['expires_hours'] ?? 72;
+
+        $invite->update([
+            'token' => Str::random(64),
+            'expires_at' => now()->addHours($hours),
+            'invited_by' => $request->user()->id,
+        ]);
+
+        Mail::to($invite->email)->send(new UserInviteMail($invite));
+
+        return back()->with('success', 'Invite resent.');
+    }
+
     public function sendPasswordReset(User $user)
     {
         $status = PasswordBroker::sendResetLink(['email' => $user->email]);

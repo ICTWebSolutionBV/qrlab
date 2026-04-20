@@ -19,6 +19,11 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.4.1] — 2026-04-20
+
+### Added
+- **Resend invite** from the admin user management page. Expired invites now show a "Resend" action that rotates the token, extends expiry by 72 hours, and re-sends the invite email. Used invites cannot be resent.
+
 ## [1.4.0] — 2026-04-17
 
 ### Added
@@ -145,7 +150,8 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.1.0...v1.2.0

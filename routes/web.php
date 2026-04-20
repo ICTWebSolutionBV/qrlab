@@ -127,6 +127,7 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
         Route::post('/users/{user}/password-reset', [AdminUserController::class, 'sendPasswordReset'])->name('users.password-reset');
         Route::post('/users/{user}/reset-2fa', [AdminUserController::class, 'resetTwoFactor'])->name('users.reset-2fa');
         Route::post('/invites', [AdminUserController::class, 'storeInvite'])->name('invites.store');
+        Route::post('/invites/{invite}/resend', [AdminUserController::class, 'resendInvite'])->name('invites.resend');
         Route::delete('/invites/{invite}', [AdminUserController::class, 'destroyInvite'])->name('invites.destroy');
     });
 });
