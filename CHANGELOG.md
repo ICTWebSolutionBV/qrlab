@@ -19,6 +19,11 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.4.3] — 2026-04-23
+
+### Fixed
+- Copy-to-clipboard now includes the frame decoration when a frame is selected (renders the full framed preview as a PNG via `html-to-image` instead of only the bare QR).
+
 ## [1.4.2] — 2026-04-23
 
 ### Added
@@ -155,7 +160,8 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.3.0...v1.4.0

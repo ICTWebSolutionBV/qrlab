@@ -4,6 +4,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import QrPreview from '@/Components/QrPreview.vue'
 import QrFrame from '@/Components/QrFrame.vue'
+import { toPng } from 'html-to-image'
 import TextLabelEditor from '@/Components/TextLabelEditor.vue'
 import { getFontStack, monospace, sansSerif } from '@/config/fonts.js'
 
@@ -15,6 +16,7 @@ const page = usePage()
 const user = computed(() => page.props.auth?.user)
 
 const qrPreviewRef = ref(null)
+const previewStageRef = ref(null)
 const logoPreview = ref(null)
 const showTextLabels = ref(false)
 const showDesign = ref(false)
@@ -426,10 +428,28 @@ const downloadQr = async (ext) => {
 
 const copyStatus = ref('')
 let copyStatusTimer = null
+
+const copyFramedToClipboard = async () => {
+    const node = previewStageRef.value?.firstElementChild || previewStageRef.value
+    if (!node) throw new Error('Preview not ready')
+    const dataUrl = await toPng(node, { pixelRatio: 3, cacheBust: true, backgroundColor: '#ffffff' })
+    const res = await fetch(dataUrl)
+    const blob = await res.blob()
+    if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+        throw new Error('Clipboard API not supported in this browser')
+    }
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+}
+
 const copyQrToClipboard = async () => {
-    if (!qrPreviewRef.value) return
     try {
-        await qrPreviewRef.value.copyToClipboard()
+        if (form.frame_style && form.frame_style !== 'none') {
+            await copyFramedToClipboard()
+        } else if (qrPreviewRef.value) {
+            await qrPreviewRef.value.copyToClipboard()
+        } else {
+            throw new Error('Preview not ready')
+        }
         copyStatus.value = 'copied'
     } catch (e) {
         copyStatus.value = 'error'
@@ -1092,7 +1112,7 @@ const copyQrToClipboard = async () => {
                         <!-- Header text -->
                         <p v-if="form.header_text" :style="headerStyle">{{ form.header_text }}</p>
 
-                        <div class="qf-preview-stage">
+                        <div class="qf-preview-stage" ref="previewStageRef">
                             <QrFrame v-if="form.frame_style && form.frame_style !== 'none'"
                                 :data="qrContent"
                                 :size="180"
