@@ -19,6 +19,11 @@ Every push that ships production-visible changes should bump the appropriate seg
 
 _Nothing yet._
 
+## [1.4.2] — 2026-04-23
+
+### Added
+- **Copy QR code to clipboard** — new button below the PNG/JPG/SVG download row on both the create and edit pages. Copies the rendered QR as a PNG image (via the async Clipboard API) so it can be pasted directly into chats, docs, or design tools.
+
 ## [1.4.1] — 2026-04-20
 
 ### Added
@@ -150,7 +155,8 @@ First tagged release. QR Lab is now a full self-hosted QR platform with multi-ty
 - Music icon incorrectly shown for the analytics shortcut; replaced with bar-chart icon.
 - Dashboard card sizing and density iterated across breakpoints to balance readability and information density.
 
-[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/ICTWebSolutionBV/qrlab/compare/v1.2.0...v1.3.0

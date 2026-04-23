@@ -115,6 +115,21 @@ const downloadRounded = async (name, extension) => {
     }, mimeType, 0.95)
 }
 
+const copyToClipboard = async () => {
+    if (!qrCode) throw new Error('QR not ready')
+    if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+        throw new Error('Clipboard API not supported in this browser')
+    }
+
+    const raw = await qrCode.getRawData('png')
+    // Normalize to a PNG Blob (some browsers return a Buffer-like object)
+    const pngBlob = raw instanceof Blob ? raw : new Blob([raw], { type: 'image/png' })
+
+    await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': pngBlob }),
+    ])
+}
+
 defineExpose({
     download: (name, extension, rounded = true) => {
         if (rounded) {
@@ -124,6 +139,7 @@ defineExpose({
         }
     },
     getRawData: (extension) => qrCode?.getRawData(extension),
+    copyToClipboard,
 })
 </script>
 

@@ -423,6 +423,21 @@ const roundedExport = ref(true)
 const downloadQr = async (ext) => {
     qrPreviewRef.value?.download(form.name || 'qrcode', ext, roundedExport.value)
 }
+
+const copyStatus = ref('')
+let copyStatusTimer = null
+const copyQrToClipboard = async () => {
+    if (!qrPreviewRef.value) return
+    try {
+        await qrPreviewRef.value.copyToClipboard()
+        copyStatus.value = 'copied'
+    } catch (e) {
+        copyStatus.value = 'error'
+        console.error('Copy to clipboard failed:', e)
+    }
+    clearTimeout(copyStatusTimer)
+    copyStatusTimer = setTimeout(() => { copyStatus.value = '' }, 2000)
+}
 </script>
 
 <template>
@@ -1149,6 +1164,13 @@ const downloadQr = async (ext) => {
                             <button @click="downloadQr('jpeg')" class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">JPG</button>
                             <button @click="downloadQr('svg')" class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">SVG</button>
                         </div>
+                        <button @click="copyQrToClipboard" type="button"
+                            :class="['mt-2 w-full px-3 py-2 rounded-lg text-xs font-medium transition-colors',
+                                copyStatus === 'copied' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
+                                copyStatus === 'error' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                                'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700']">
+                            {{ copyStatus === 'copied' ? 'Copied to clipboard!' : copyStatus === 'error' ? 'Copy failed — try download' : 'Copy to clipboard' }}
+                        </button>
                     </div>
 
                     <!-- Save (authenticated) -->
