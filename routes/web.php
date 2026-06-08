@@ -6,7 +6,9 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\TwoFactorEnrollmentController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ShortLinkStatsController as AdminShortLinkStatsController;
 use App\Http\Controllers\ChangelogController;
+use App\Http\Controllers\ShortLinkController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\InviteController;
@@ -129,5 +131,24 @@ Route::middleware(['auth', '2fa.required'])->group(function () {
         Route::post('/invites', [AdminUserController::class, 'storeInvite'])->name('invites.store');
         Route::post('/invites/{invite}/resend', [AdminUserController::class, 'resendInvite'])->name('invites.resend');
         Route::delete('/invites/{invite}', [AdminUserController::class, 'destroyInvite'])->name('invites.destroy');
+        Route::get('/link-stats', [AdminShortLinkStatsController::class, 'index'])->name('link-stats');
+    });
+
+    // Short Links
+    Route::prefix('links')->name('links.')->group(function () {
+        Route::get('/', [ShortLinkController::class, 'index'])->name('index');
+        Route::get('/create', [ShortLinkController::class, 'create'])->name('create');
+        Route::post('/', [ShortLinkController::class, 'store'])->name('store');
+        Route::post('/bulk-destroy', [ShortLinkController::class, 'bulkDestroy'])->name('bulk-destroy');
+        Route::get('/{link}/edit', [ShortLinkController::class, 'edit'])->name('edit');
+        Route::get('/{link}/analytics', [ShortLinkController::class, 'analytics'])->name('analytics');
+        Route::get('/{link}/qr', [ShortLinkController::class, 'qrCode'])->name('qr');
+        Route::put('/{link}', [ShortLinkController::class, 'update'])->name('update');
+        Route::delete('/{link}', [ShortLinkController::class, 'destroy'])->name('destroy');
     });
 });
+
+// Short link redirect — catch-all, must be last
+Route::get('/{alias}', [ShortLinkController::class, 'redirect'])
+    ->where('alias', '[a-zA-Z0-9_-]{5,}')
+    ->name('short-link.redirect');

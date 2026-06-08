@@ -45,6 +45,11 @@ class User extends Authenticatable implements HasPasskeys
         return $this->hasMany(QrCode::class);
     }
 
+    public function shortLinks()
+    {
+        return $this->hasMany(ShortLink::class);
+    }
+
     public function qrCodeBatches()
     {
         return $this->hasMany(QrCodeBatch::class);
