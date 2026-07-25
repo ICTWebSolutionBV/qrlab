@@ -7,10 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
-        "brick/math": "^0.17.2",
         "endroid/qr-code": "^6.0",
-        "guzzlehttp/guzzle": "^7.12.1",
-        "guzzlehttp/psr7": "^2.12.1",
+        "guzzlehttp/guzzle": "^7.15.1",
         "inertiajs/inertia-laravel": "^3.0",
         "intervention/image-laravel": "^1.5",
         "laravel/framework": "^13.0",
@@ -52,7 +50,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "./node_modules/.bin/concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
         ],
         "test": [
             "@php artisan config:clear --ansi",
