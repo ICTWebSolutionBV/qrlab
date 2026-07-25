@@ -17,11 +17,17 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Deliberately a single job. The two toolchains are not separable here: the asset
+# build needs vendor/tightenco/ziggy (aliased in vite.config.js), and the feature
+# tests render views that need public/build/manifest.json. Split jobs would each
+# have to install both PHP and Node, costing more total compute than one job.
+# Steps are ordered cheapest-failure-first so a known advisory stops the run
+# before the build and test steps.
 jobs:
-  php:
-    name: PHP (audit + tests)
+  ci:
+    name: Audit, build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
@@ -36,13 +42,13 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ runner.os }}-php8.4-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-php8.4-
 
-      - name: Install dependencies
+      - name: Install PHP dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
       # Fails the build on any known advisory in the locked PHP dependencies.
@@ -53,6 +59,22 @@ jobs:
       - name: Validate composer manifest against lock
         run: composer validate --no-check-publish --strict
 
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # --ignore-scripts matches .npmrc; lifecycle scripts from dependencies do not run.
+      - name: Install JS dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Audit JS dependencies
+        run: npm audit --audit-level=moderate
+
+      # Must precede the tests: feature tests render views that read the Vite manifest.
+      - name: Build assets
+        run: npm run build
+
       - name: Prepare application environment
         run: |
           cp .env.example .env
@@ -60,46 +82,3 @@ jobs:
 
       - name: Run test suite
         run: php artisan test
-
-  js:
-    name: JS (audit + build)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-
-      # vite.config.js aliases ziggy-js to vendor/tightenco/ziggy, so the asset build
-      # cannot run without composer dependencies present. Runtime deps only.
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
-        with:
-          php-version: '8.4'
-          coverage: none
-          tools: composer:v2
-
-      - name: Resolve composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ runner.os }}-php8.4-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-php8.4-
-
-      - name: Install composer runtime dependencies (for ziggy)
-        run: composer install --no-dev --no-scripts --prefer-dist --no-interaction --no-progress
-
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      # --ignore-scripts matches .npmrc; lifecycle scripts from dependencies do not run.
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Audit JS dependencies
-        run: npm audit --audit-level=moderate
-
-      - name: Build assets
-        run: npm run build
