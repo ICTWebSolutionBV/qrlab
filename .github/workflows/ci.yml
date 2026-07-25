@@ -27,7 +27,7 @@ jobs:
 
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: bcmath, gmp, mbstring, intl, sqlite3, pdo_sqlite
           coverage: none
           tools: composer:v2
@@ -39,8 +39,8 @@ jobs:
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ runner.os }}-php8.3-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-php8.3-
+          key: composer-${{ runner.os }}-php8.4-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php8.4-
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -67,6 +67,27 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      # vite.config.js aliases ziggy-js to vendor/tightenco/ziggy, so the asset build
+      # cannot run without composer dependencies present. Runtime deps only.
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Resolve composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php8.4-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php8.4-
+
+      - name: Install composer runtime dependencies (for ziggy)
+        run: composer install --no-dev --no-scripts --prefer-dist --no-interaction --no-progress
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
