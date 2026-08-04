@@ -8,9 +8,9 @@
     "require": {
         "php": "^8.4.1",
         "endroid/qr-code": "^6.0",
-        "guzzlehttp/guzzle": "^7.15.1",
+        "guzzlehttp/guzzle": "^7.15.2",
         "inertiajs/inertia-laravel": "^3.0",
-        "intervention/image-laravel": "^1.5",
+        "intervention/image-laravel": "^4.1",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "league/csv": "^9.0",
@@ -25,7 +25,7 @@
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^12.5.12"
+        "phpunit/phpunit": "^13.2"
     },
     "autoload": {
         "psr-4": {
