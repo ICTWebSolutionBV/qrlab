@@ -14,14 +14,14 @@
         "concurrently": "^9.2.4",
         "laravel-vite-plugin": "^3.0.1",
         "tailwindcss": "^4.2.2",
-        "vite": "^8.0.8"
+        "vite": "^8.2.0"
     },
     "dependencies": {
         "@inertiajs/vue3": "^3.0.3",
         "@simplewebauthn/browser": "^13.3.0",
         "@vitejs/plugin-vue": "^6.0.6",
-        "@vueuse/core": "^14.2.1",
-        "axios": "^1.15.0",
+        "@vueuse/core": "^14.4.0",
+        "axios": "^1.19.0",
         "chart.js": "^4.5.1",
         "html-to-image": "^1.11.13",
         "lucide-vue-next": "^1.0.0",
