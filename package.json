@@ -14,10 +14,10 @@
         "concurrently": "^9.2.4",
         "laravel-vite-plugin": "^3.0.1",
         "tailwindcss": "^4.2.2",
-        "vite": "^8.0.8"
+        "vite": "^8.2.2"
     },
     "dependencies": {
-        "@inertiajs/vue3": "^3.0.3",
+        "@inertiajs/vue3": "^3.7.0",
         "@simplewebauthn/browser": "^13.3.0",
         "@vitejs/plugin-vue": "^6.0.6",
         "@vueuse/core": "^14.2.1",
