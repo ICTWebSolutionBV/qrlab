@@ -136,7 +136,7 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
 
 - PHP 8.4.1+
 - Composer
-- Node.js 20.19+ or 22.12+ (see `.nvmrc`)
+- Node.js 22.12+ (see `.nvmrc`)
 - MySQL 8.0+ / PostgreSQL 14+ / SQLite
 
 ### Local Development

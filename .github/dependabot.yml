@@ -23,14 +23,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    ignore:
-      # concurrently 10 requires Node >=22, which would drop the Node 20.19 LTS
-      # line that the rest of the toolchain still supports. Staying on 9.x is a
-      # deliberate choice, not staleness - see the commit that reverted 10.0.4.
-      # Patch and minor updates within 9.x still come through.
-      - dependency-name: concurrently
-        update-types:
-          - version-update:semver-major
     groups:
       js-minor-and-patch:
         update-types:
