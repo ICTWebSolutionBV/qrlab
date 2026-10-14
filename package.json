@@ -17,9 +17,9 @@
         "vite": "^8.0.8"
     },
     "dependencies": {
-        "@inertiajs/vue3": "^3.0.3",
+        "@inertiajs/vue3": "^3.9.1",
         "@simplewebauthn/browser": "^14.0.0",
-        "@vitejs/plugin-vue": "^6.0.6",
+        "@vitejs/plugin-vue": "^6.0.10",
         "@vueuse/core": "^15.0.0",
         "axios": "^1.15.0",
         "chart.js": "^4.5.1",
