@@ -1,7 +1,31 @@
 <script setup>
 import { computed } from 'vue'
 import QrPreview from './QrPreview.vue'
-import * as LucideIcons from 'lucide-vue-next'
+import {
+    Camera, Coffee, Download, Gift, Globe, Heart, Mail, MapPin, Music, Phone,
+    Play, QrCode, ShoppingBag, ShoppingCart, Smartphone, Star, Video, Wifi,
+    createLucideIcon,
+} from '@lucide/vue'
+
+// Lucide dropped its brand icons; these keep the shapes of the last lucide-vue-next release.
+const Instagram = createLucideIcon('instagram', [
+    ['rect', { width: '20', height: '20', x: '2', y: '2', rx: '5', ry: '5' }],
+    ['path', { d: 'M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z' }],
+    ['line', { x1: '17.5', x2: '17.51', y1: '6.5', y2: '6.5' }],
+])
+const Youtube = createLucideIcon('youtube', [
+    ['path', { d: 'M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17' }],
+    ['path', { d: 'm10 15 5-3-5-3z' }],
+])
+const Facebook = createLucideIcon('facebook', [
+    ['path', { d: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' }],
+])
+
+// Keys match the frameIcons values offered in Pages/QrCode/Create.vue.
+const frameIcons = {
+    Camera, Coffee, Download, Facebook, Gift, Globe, Heart, Instagram, Mail, MapPin, Music,
+    Phone, Play, QrCode, ShoppingBag, ShoppingCart, Smartphone, Star, Video, Wifi, Youtube,
+}
 
 const props = defineProps({
     // QR options — forwarded to QrPreview
@@ -56,7 +80,7 @@ const isArrow = computed(() => props.frameStyle.startsWith('arrow-'))
 
 const IconComponent = computed(() => {
     if (!props.frameIcon || props.frameIcon === 'none') return null
-    return LucideIcons[props.frameIcon] || null
+    return frameIcons[props.frameIcon] || null
 })
 </script>
 
