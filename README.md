@@ -123,7 +123,7 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
 
 ## Tech Stack
 
-- **Backend**: Laravel 13, PHP 8.3+
+- **Backend**: Laravel 13, PHP 8.5+
 - **Frontend**: Vue 3, Inertia.js v3, Tailwind CSS 4
 - **QR Generation**: qr-code-styling (client-side), endroid/qr-code v6 (server-side)
 - **Charts**: Chart.js + vue-chartjs
@@ -134,7 +134,7 @@ A self-hosted QR code platform built with Laravel and Vue.js. Generate styled QR
 
 ### Requirements
 
-- PHP 8.4.1+
+- PHP 8.5+
 - Composer
 - Node.js 22.12+ (see `.nvmrc`)
 - MySQL 8.0+ / PostgreSQL 14+ / SQLite
@@ -198,7 +198,7 @@ The super admin gets a **Platform Stats** link in the sidebar and can grant the 
 
 - In Ploi, create a new site pointing to your domain
 - Set the web directory to `/public`
-- Select PHP 8.3+ as the PHP version
+- Select PHP 8.5+ as the PHP version
 
 ### 2. Connect Repository
 

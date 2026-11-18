@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.4.1",
+        "php": "^8.5",
         "endroid/qr-code": "^6.0",
         "guzzlehttp/guzzle": "^8.0",
         "inertiajs/inertia-laravel": "^3.0",
@@ -89,7 +89,7 @@
             "php-http/discovery": true
         },
         "platform": {
-            "php": "8.4.1"
+            "php": "8.5.0"
         }
     },
     "minimum-stability": "stable",
