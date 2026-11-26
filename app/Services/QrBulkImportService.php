@@ -67,8 +67,9 @@ class QrBulkImportService
         $example = array_map(fn ($c) => $schema[$c][2], $headers);
 
         $fh = fopen('php://temp', 'r+');
-        fputcsv($fh, $headers);
-        fputcsv($fh, $example);
+        // PHP 8.4 deprecates the implicit $escape default; '\\' keeps the current CSV format.
+        fputcsv($fh, $headers, escape: '\\');
+        fputcsv($fh, $example, escape: '\\');
         rewind($fh);
         $csv = stream_get_contents($fh);
         fclose($fh);
@@ -87,7 +88,7 @@ class QrBulkImportService
         $expected = array_keys($schema);
 
         $fh = fopen($file->getRealPath(), 'r');
-        $headers = fgetcsv($fh);
+        $headers = fgetcsv($fh, escape: '\\');
         if ($headers === false) {
             return ['rows' => [], 'errors' => [['General' => 'The uploaded file is empty.']], 'headers' => [], 'total' => 0];
         }
@@ -96,7 +97,7 @@ class QrBulkImportService
         $rows = [];
         $errors = [];
         $lineNumber = 1;
-        while (($data = fgetcsv($fh)) !== false) {
+        while (($data = fgetcsv($fh, escape: '\\')) !== false) {
             $lineNumber++;
             if (count(array_filter($data, fn ($v) => $v !== null && $v !== '')) === 0) {
                 continue; // skip empty rows
